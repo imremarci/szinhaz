@@ -1,4 +1,4 @@
-module com.example.szinhaz {
+module com.example.demo {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
@@ -11,6 +11,6 @@ module com.example.szinhaz {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
 
-    opens com.example.szinhaz to javafx.fxml;
-    exports com.example.szinhaz;
+    opens com.example.demo to javafx.fxml;
+    exports com.example.demo;
 }
