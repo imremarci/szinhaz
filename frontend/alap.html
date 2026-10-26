@@ -35,22 +35,83 @@
             background-color: #e9ecef;
         }
 
-        /* Terem kártyák */
+        /* Terem kártyák és belső színház dizájn */
         .room-card {
             border: 4px solid #7f7f7f;
-            height: 240px;
+            height: 290px;
             background-color: #fff;
             cursor: pointer;
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
         }
         .room-card:hover {
             transform: translateY(-4px);
             border-color: #000;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+        }
+
+        /* Színpad elem */
+        .stage {
+            width: 75%;
+            height: 28px;
+            background: linear-gradient(180deg, #343a40 0%, #495057 100%);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: box-shadow 0.3s, background 0.3s;
+            margin-bottom: 10px;
+        }
+        .room-card:hover .stage {
+            background: linear-gradient(180deg, #212529 0%, #c92a2a 100%);
+            box-shadow: 0 8px 20px rgba(201, 42, 42, 0.35);
+        }
+
+        /* Ülésrend (Nézőtér) */
+        .auditorium {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+        .seat-row {
+            display: flex;
+            gap: 5px;
+             justify-content: center;
+        }
+        .seat {
+            width: 16px;
+            height: 15px;
+            background-color: #adb5bd;
+            border-radius: 5px 5px 2px 2px;
+            border-bottom: 3px solid #6c757d;
+            transition: transform 0.15s, background-color 0.2s;
+        }
+        /* Kiemelt (vörös bársony) székek a hangulatért */
+        .seat.vip {
+            background-color: #e03131;
+            border-bottom-color: #a61e1e;
+        }
+        .room-card:hover .seat {
+            background-color: #868e96;
+        }
+        .room-card:hover .seat.vip {
+            background-color: #fa5252;
+        }
+        /* Közlekedőfolyosó a székek között */
+        .aisle {
+            width: 12px;
         }
 
         /* Idősáv (Timeline) */
@@ -131,26 +192,57 @@
         <!-- Jobb oldali fő tartalom -->
         <div class="col-12 col-md-9 col-lg-10 d-flex flex-column justify-content-between">
             
-            <!-- Felső rész: 3 választható terem -->
+            <!-- Felső rész: 3 választható terem színházi ülésekkel -->
             <div class="row g-4 mt-1">
+                
+                <!-- TEREM 1 (Nagyterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(1)">
-                        <h3 class="fw-bold">terem 1</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 1</h4>
+                            <span class="badge bg-secondary">Nagyterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-1"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
+                <!-- TEREM 2 (Kamaraterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(2)">
-                        <h3 class="fw-bold">terem 2</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 2</h4>
+                            <span class="badge bg-secondary">Kamaraterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-2"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
+                <!-- TEREM 3 (Stúdióterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(3)">
-                        <h3 class="fw-bold">terem 3</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 3</h4>
+                            <span class="badge bg-secondary">Stúdióterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-3"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
             </div>
 
             <!-- Alsó rész: Idősáv -->
@@ -260,6 +352,39 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let modalInstance;
+
+    // Ülések kigenerálása a 3 terembe különböző színházi elrendezéssel
+    function renderSeats(containerId, rows, pattern) {
+        const container = document.getElementById(containerId);
+        for (let r = 0; r < rows; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'seat-row';
+            
+            pattern.forEach(item => {
+                if (item === 'aisle') {
+                    const aisle = document.createElement('div');
+                    aisle.className = 'aisle';
+                    rowDiv.appendChild(aisle);
+                } else {
+                    for (let s = 0; s < item; s++) {
+                        const seat = document.createElement('div');
+                        // Az első két sor középső székeit VIP (vörös) széknek jelöljük a látványért
+                        const isVip = (r < 2);
+                        seat.className = `seat ${isVip ? 'vip' : ''}`;
+                        rowDiv.appendChild(seat);
+                    }
+                }
+            });
+            container.appendChild(rowDiv);
+        }
+    }
+
+    // Terem 1: 5 sor, 2 szék - folyosó - 4 szék - folyosó - 2 szék
+    renderSeats('seats-room-1', 5, [2, 'aisle', 4, 'aisle', 2]);
+    // Terem 2: 5 sor, 3 szék - folyosó - 3 szék
+    renderSeats('seats-room-2', 5, [3, 'aisle', 3]);
+    // Terem 3: 4 sor, 5 szék egyben (Stúdió elrendezés)
+    renderSeats('seats-room-3', 4, [5]);
 
     function openModal(roomNumber) {
         document.getElementById('selectedRoom').value = roomNumber;
