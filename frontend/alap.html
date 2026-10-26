@@ -6,6 +6,8 @@
     <title>Színház</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (a kuka ikonhoz) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             min-height: 100vh;
@@ -88,7 +90,7 @@
         .seat-row {
             display: flex;
             gap: 5px;
-             justify-content: center;
+            justify-content: center;
         }
         .seat {
             width: 16px;
@@ -98,7 +100,6 @@
             border-bottom: 3px solid #6c757d;
             transition: transform 0.15s, background-color 0.2s;
         }
-        /* Kiemelt (vörös bársony) székek a hangulatért */
         .seat.vip {
             background-color: #e03131;
             border-bottom-color: #a61e1e;
@@ -109,7 +110,6 @@
         .room-card:hover .seat.vip {
             background-color: #fa5252;
         }
-        /* Közlekedőfolyosó a székek között */
         .aisle {
             width: 12px;
         }
@@ -152,7 +152,7 @@
             position: absolute;
             top: 4px;
             bottom: 4px;
-            border-radius: 2px;
+            border-radius: 4px;
             color: #fff;
             font-size: 0.8rem;
             font-weight: 600;
@@ -160,11 +160,55 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            padding: 0 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: opacity 0.2s, transform 0.2s, filter 0.2s;
+        }
+        .play-block:hover {
+            filter: brightness(0.95);
+            z-index: 5;
+        }
+        .play-title {
+            overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            padding: 0 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            width: 100%;
+            text-align: center;
+            transition: padding-right 0.2s;
         }
+        .play-block:hover .play-title {
+            padding-right: 24px;
+        }
+
+        /* Kuka (Törlés) gomb az idősáv blokkjain */
+        .delete-play-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+        .play-block:hover .delete-play-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .delete-play-btn:hover {
+            background-color: #dc3545;
+            transform: translateY(-50%) scale(1.1);
+        }
+
         /* Színdarab színek a terv alapján */
         .play-red { background-color: #ed1c24; }
         .play-blue { background-color: #3f48cc; }
@@ -276,9 +320,24 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 1</div>
                         <div class="timeline-track" id="track-1">
-                            <div class="play-block play-red" style="left: 5%; width: 12%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
-                            <div class="play-block play-blue" style="left: 20%; width: 16%;" title="Hamlet">Hamlet</div>
-                            <div class="play-block play-red" style="left: 43%; width: 14%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
+                            <div class="play-block play-red" style="left: 5%; width: 12%;" title="Rómeó és Júlia">
+                                <span class="play-title">Rómeó és Júlia</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-blue" style="left: 20%; width: 16%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-red" style="left: 43%; width: 14%;" title="Rómeó és Júlia">
+                                <span class="play-title">Rómeó és Júlia</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -286,7 +345,12 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 2</div>
                         <div class="timeline-track" id="track-2">
-                            <div class="play-block play-blue" style="left: 41%; width: 15%;" title="Hamlet">Hamlet</div>
+                            <div class="play-block play-blue" style="left: 41%; width: 15%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -294,10 +358,30 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 3</div>
                         <div class="timeline-track" id="track-3">
-                            <div class="play-block play-green" style="left: 6%; width: 12%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-green" style="left: 21%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-green" style="left: 38%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-blue" style="left: 64%; width: 15%;" title="Hamlet">Hamlet</div>
+                            <div class="play-block play-green" style="left: 6%; width: 12%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-green" style="left: 21%; width: 13%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-green" style="left: 38%; width: 13%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-blue" style="left: 64%; width: 15%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -368,7 +452,6 @@
                 } else {
                     for (let s = 0; s < item; s++) {
                         const seat = document.createElement('div');
-                        // Az első két sor középső székeit VIP (vörös) széknek jelöljük a látványért
                         const isVip = (r < 2);
                         seat.className = `seat ${isVip ? 'vip' : ''}`;
                         rowDiv.appendChild(seat);
@@ -379,11 +462,8 @@
         }
     }
 
-    // Terem 1: 5 sor, 2 szék - folyosó - 4 szék - folyosó - 2 szék
     renderSeats('seats-room-1', 5, [2, 'aisle', 4, 'aisle', 2]);
-    // Terem 2: 5 sor, 3 szék - folyosó - 3 szék
     renderSeats('seats-room-2', 5, [3, 'aisle', 3]);
-    // Terem 3: 4 sor, 5 szék egyben (Stúdió elrendezés)
     renderSeats('seats-room-3', 4, [5]);
 
     function openModal(roomNumber) {
@@ -396,6 +476,7 @@
         modalInstance.show();
     }
 
+    // Új előadás hozzáadása az idősávhoz (kuka gombbal együtt)
     function addPlay(event) {
         event.preventDefault();
         
@@ -416,10 +497,27 @@
         block.style.left = `${leftPercent}%`;
         block.style.width = `${widthPercent}%`;
         block.title = title;
-        block.innerText = title;
+        block.innerHTML = `
+            <span class="play-title">${title}</span>
+            <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        `;
 
         document.getElementById(`track-${room}`).appendChild(block);
         modalInstance.hide();
+    }
+
+    // Előadás törlése az idősávról
+    function deletePlay(buttonElement) {
+        const playBlock = buttonElement.closest('.play-block');
+        if (playBlock) {
+            playBlock.style.opacity = '0';
+            playBlock.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                playBlock.remove();
+            }, 180);
+        }
     }
 </script>
 </body>
