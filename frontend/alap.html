@@ -6,6 +6,8 @@
     <title>Színház</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (a kuka ikonhoz) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             min-height: 100vh;
@@ -35,22 +37,81 @@
             background-color: #e9ecef;
         }
 
-        /* Terem kártyák */
+        /* Terem kártyák és belső színház dizájn */
         .room-card {
             border: 4px solid #7f7f7f;
-            height: 240px;
+            height: 290px;
             background-color: #fff;
             cursor: pointer;
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
         }
         .room-card:hover {
             transform: translateY(-4px);
             border-color: #000;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+        }
+
+        /* Színpad elem */
+        .stage {
+            width: 75%;
+            height: 28px;
+            background: linear-gradient(180deg, #343a40 0%, #495057 100%);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: box-shadow 0.3s, background 0.3s;
+            margin-bottom: 10px;
+        }
+        .room-card:hover .stage {
+            background: linear-gradient(180deg, #212529 0%, #c92a2a 100%);
+            box-shadow: 0 8px 20px rgba(201, 42, 42, 0.35);
+        }
+
+        /* Ülésrend (Nézőtér) */
+        .auditorium {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+        .seat-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .seat {
+            width: 16px;
+            height: 15px;
+            background-color: #adb5bd;
+            border-radius: 5px 5px 2px 2px;
+            border-bottom: 3px solid #6c757d;
+            transition: transform 0.15s, background-color 0.2s;
+        }
+        .seat.vip {
+            background-color: #e03131;
+            border-bottom-color: #a61e1e;
+        }
+        .room-card:hover .seat {
+            background-color: #868e96;
+        }
+        .room-card:hover .seat.vip {
+            background-color: #fa5252;
+        }
+        .aisle {
+            width: 12px;
         }
 
         /* Idősáv (Timeline) */
@@ -91,7 +152,7 @@
             position: absolute;
             top: 4px;
             bottom: 4px;
-            border-radius: 2px;
+            border-radius: 4px;
             color: #fff;
             font-size: 0.8rem;
             font-weight: 600;
@@ -99,11 +160,55 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            padding: 0 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: opacity 0.2s, transform 0.2s, filter 0.2s;
+        }
+        .play-block:hover {
+            filter: brightness(0.95);
+            z-index: 5;
+        }
+        .play-title {
+            overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            padding: 0 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            width: 100%;
+            text-align: center;
+            transition: padding-right 0.2s;
         }
+        .play-block:hover .play-title {
+            padding-right: 24px;
+        }
+
+        /* Kuka (Törlés) gomb az idősáv blokkjain */
+        .delete-play-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+        .play-block:hover .delete-play-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .delete-play-btn:hover {
+            background-color: #dc3545;
+            transform: translateY(-50%) scale(1.1);
+        }
+
         /* Színdarab színek a terv alapján */
         .play-red { background-color: #ed1c24; }
         .play-blue { background-color: #3f48cc; }
@@ -131,26 +236,57 @@
         <!-- Jobb oldali fő tartalom -->
         <div class="col-12 col-md-9 col-lg-10 d-flex flex-column justify-content-between">
             
-            <!-- Felső rész: 3 választható terem -->
+            <!-- Felső rész: 3 választható terem színházi ülésekkel -->
             <div class="row g-4 mt-1">
+                
+                <!-- TEREM 1 (Nagyterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(1)">
-                        <h3 class="fw-bold">terem 1</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 1</h4>
+                            <span class="badge bg-secondary">Nagyterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-1"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
+                <!-- TEREM 2 (Kamaraterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(2)">
-                        <h3 class="fw-bold">terem 2</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 2</h4>
+                            <span class="badge bg-secondary">Kamaraterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-2"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
+                <!-- TEREM 3 (Stúdióterem) -->
                 <div class="col-12 col-md-4">
                     <div class="room-card" onclick="openModal(3)">
-                        <h3 class="fw-bold">terem 3</h3>
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-1">
+                            <h4 class="fw-bold m-0">terem 3</h4>
+                            <span class="badge bg-secondary">Stúdióterem</span>
+                        </div>
+                        
+                        <div class="stage">SZÍNPAD</div>
+                        
+                        <div class="auditorium" id="seats-room-3"></div>
+                        
                         <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
+
             </div>
 
             <!-- Alsó rész: Idősáv -->
@@ -184,9 +320,24 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 1</div>
                         <div class="timeline-track" id="track-1">
-                            <div class="play-block play-red" style="left: 5%; width: 12%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
-                            <div class="play-block play-blue" style="left: 20%; width: 16%;" title="Hamlet">Hamlet</div>
-                            <div class="play-block play-red" style="left: 43%; width: 14%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
+                            <div class="play-block play-red" style="left: 5%; width: 12%;" title="Rómeó és Júlia">
+                                <span class="play-title">Rómeó és Júlia</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-blue" style="left: 20%; width: 16%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-red" style="left: 43%; width: 14%;" title="Rómeó és Júlia">
+                                <span class="play-title">Rómeó és Júlia</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -194,7 +345,12 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 2</div>
                         <div class="timeline-track" id="track-2">
-                            <div class="play-block play-blue" style="left: 41%; width: 15%;" title="Hamlet">Hamlet</div>
+                            <div class="play-block play-blue" style="left: 41%; width: 15%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -202,10 +358,30 @@
                     <div class="timeline-row">
                         <div class="timeline-label">terem 3</div>
                         <div class="timeline-track" id="track-3">
-                            <div class="play-block play-green" style="left: 6%; width: 12%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-green" style="left: 21%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-green" style="left: 38%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
-                            <div class="play-block play-blue" style="left: 64%; width: 15%;" title="Hamlet">Hamlet</div>
+                            <div class="play-block play-green" style="left: 6%; width: 12%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-green" style="left: 21%; width: 13%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-green" style="left: 38%; width: 13%;" title="A Pál utcai fiúk">
+                                <span class="play-title">A Pál utcai fiúk</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                            <div class="play-block play-blue" style="left: 64%; width: 15%;" title="Hamlet">
+                                <span class="play-title">Hamlet</span>
+                                <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,6 +437,35 @@
 <script>
     let modalInstance;
 
+    // Ülések kigenerálása a 3 terembe különböző színházi elrendezéssel
+    function renderSeats(containerId, rows, pattern) {
+        const container = document.getElementById(containerId);
+        for (let r = 0; r < rows; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'seat-row';
+            
+            pattern.forEach(item => {
+                if (item === 'aisle') {
+                    const aisle = document.createElement('div');
+                    aisle.className = 'aisle';
+                    rowDiv.appendChild(aisle);
+                } else {
+                    for (let s = 0; s < item; s++) {
+                        const seat = document.createElement('div');
+                        const isVip = (r < 2);
+                        seat.className = `seat ${isVip ? 'vip' : ''}`;
+                        rowDiv.appendChild(seat);
+                    }
+                }
+            });
+            container.appendChild(rowDiv);
+        }
+    }
+
+    renderSeats('seats-room-1', 5, [2, 'aisle', 4, 'aisle', 2]);
+    renderSeats('seats-room-2', 5, [3, 'aisle', 3]);
+    renderSeats('seats-room-3', 4, [5]);
+
     function openModal(roomNumber) {
         document.getElementById('selectedRoom').value = roomNumber;
         document.getElementById('modalTitle').innerText = `Új előadás felvétele – Terem ${roomNumber}`;
@@ -271,6 +476,7 @@
         modalInstance.show();
     }
 
+    // Új előadás hozzáadása az idősávhoz (kuka gombbal együtt)
     function addPlay(event) {
         event.preventDefault();
         
@@ -291,10 +497,27 @@
         block.style.left = `${leftPercent}%`;
         block.style.width = `${widthPercent}%`;
         block.title = title;
-        block.innerText = title;
+        block.innerHTML = `
+            <span class="play-title">${title}</span>
+            <button type="button" class="delete-play-btn" onclick="deletePlay(this)" title="Előadás törlése">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        `;
 
         document.getElementById(`track-${room}`).appendChild(block);
         modalInstance.hide();
+    }
+
+    // Előadás törlése az idősávról
+    function deletePlay(buttonElement) {
+        const playBlock = buttonElement.closest('.play-block');
+        if (playBlock) {
+            playBlock.style.opacity = '0';
+            playBlock.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                playBlock.remove();
+            }, 180);
+        }
     }
 </script>
 </body>
