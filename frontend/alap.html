@@ -1,15 +1,301 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Színház</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        /* Bal oldali menü */
+        .sidebar {
+            border: 3px solid #000;
+            min-height: calc(100vh - 2rem);
+            background-color: #fff;
+        }
+        .sidebar h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+        }
+        .sidebar h2 {
+            font-size: 1.25rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .sidebar h2:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Terem kártyák */
+        .room-card {
+            border: 4px solid #7f7f7f;
+            height: 240px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .room-card:hover {
+            transform: translateY(-4px);
+            border-color: #000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        /* Idősáv (Timeline) */
+        .timeline-container {
+            border: 4px solid #7f7f7f;
+            background-color: #fff;
+        }
+        .timeline-row {
+            border-bottom: 3px solid #000;
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+        }
+        .timeline-row:last-child {
+            border-bottom: none;
+        }
+        .timeline-label {
+            width: 130px;
+            font-size: 1.35rem;
+            font-weight: bold;
+            padding-left: 1rem;
+            flex-shrink: 0;
+        }
+        .timeline-track {
+            position: relative;
+            flex-grow: 1;
+            height: 50px;
+            margin-right: 1rem;
+            background: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent calc(10% - 1px),
+                #eee calc(10% - 1px),
+                #eee 10%
+            );
+        }
+        .play-block {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            border-radius: 2px;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 0 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        /* Színdarab színek a terv alapján */
+        .play-red { background-color: #ed1c24; }
+        .play-blue { background-color: #3f48cc; }
+        .play-green { background-color: #22b14c; }
+    </style>
 </head>
 <body>
-    <h1>Színház?</h1>
-    <h2>Színdarabok</h2>
-    <h2>Színészek</h2>
-    <h2>Termek</h2>
-    <h2>Előadások</h2>
+
+<div class="container-fluid p-3">
+    <div class="row g-4">
+        
+        <!-- Bal oldali Menü -->
+        <div class="col-12 col-md-3 col-lg-2">
+            <div class="sidebar p-3">
+                <h1>Színház</h1>
+                <div class="mt-3">
+                    <h2>Színdarabok</h2>
+                    <h2>Színészek</h2>
+                    <h2 class="bg-dark text-white">Termek</h2>
+                    <h2>Előadások</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobb oldali fő tartalom -->
+        <div class="col-12 col-md-9 col-lg-10 d-flex flex-column justify-content-between">
+            
+            <!-- Felső rész: 3 választható terem -->
+            <div class="row g-4 mt-1">
+                <div class="col-12 col-md-4">
+                    <div class="room-card" onclick="openModal(1)">
+                        <h3 class="fw-bold">terem 1</h3>
+                        <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="room-card" onclick="openModal(2)">
+                        <h3 class="fw-bold">terem 2</h3>
+                        <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="room-card" onclick="openModal(3)">
+                        <h3 class="fw-bold">terem 3</h3>
+                        <small class="text-muted mt-2">+ Kattints előadás felvételéhez</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alsó rész: Idősáv -->
+            <div class="mt-5 mb-2">
+                <div class="d-flex justify-content-between align-items-end mb-2 px-2">
+                    <h4 class="fw-bold m-0 ms-5">idősáv</h4>
+                    <!-- Jelmagyarázat -->
+                    <div class="d-flex gap-3 small fw-semibold">
+                        <span><span class="badge play-red">&nbsp;</span> Rómeó és Júlia</span>
+                        <span><span class="badge play-blue">&nbsp;</span> Hamlet</span>
+                        <span><span class="badge play-green">&nbsp;</span> A Pál utcai fiúk</span>
+                    </div>
+                </div>
+
+                <!-- Órák skálája (10:00 - 20:00) -->
+                <div class="d-flex text-muted small mb-1" style="padding-left: 130px; padding-right: 1rem;">
+                    <div class="flex-fill">10:00</div>
+                    <div class="flex-fill">11:00</div>
+                    <div class="flex-fill">12:00</div>
+                    <div class="flex-fill">13:00</div>
+                    <div class="flex-fill">14:00</div>
+                    <div class="flex-fill">15:00</div>
+                    <div class="flex-fill">16:00</div>
+                    <div class="flex-fill">17:00</div>
+                    <div class="flex-fill">18:00</div>
+                    <div class="flex-fill">19:00</div>
+                </div>
+
+                <div class="timeline-container">
+                    <!-- Terem 1 sora -->
+                    <div class="timeline-row">
+                        <div class="timeline-label">terem 1</div>
+                        <div class="timeline-track" id="track-1">
+                            <div class="play-block play-red" style="left: 5%; width: 12%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
+                            <div class="play-block play-blue" style="left: 20%; width: 16%;" title="Hamlet">Hamlet</div>
+                            <div class="play-block play-red" style="left: 43%; width: 14%;" title="Rómeó és Júlia">Rómeó és Júlia</div>
+                        </div>
+                    </div>
+
+                    <!-- Terem 2 sora -->
+                    <div class="timeline-row">
+                        <div class="timeline-label">terem 2</div>
+                        <div class="timeline-track" id="track-2">
+                            <div class="play-block play-blue" style="left: 41%; width: 15%;" title="Hamlet">Hamlet</div>
+                        </div>
+                    </div>
+
+                    <!-- Terem 3 sora -->
+                    <div class="timeline-row">
+                        <div class="timeline-label">terem 3</div>
+                        <div class="timeline-track" id="track-3">
+                            <div class="play-block play-green" style="left: 6%; width: 12%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
+                            <div class="play-block play-green" style="left: 21%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
+                            <div class="play-block play-green" style="left: 38%; width: 13%;" title="A Pál utcai fiúk">A Pál utcai fiúk</div>
+                            <div class="play-block play-blue" style="left: 64%; width: 15%;" title="Hamlet">Hamlet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Modal új előadás felvételéhez -->
+<div class="modal fade" id="addPlayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="playForm" onsubmit="addPlay(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Új előadás felvétele</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Bezárás"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="selectedRoom">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Színdarab kiválasztása</label>
+                        <select class="form-select" id="playSelect" required>
+                            <option value="play-red" data-title="Rómeó és Júlia">Rómeó és Júlia (Piros)</option>
+                            <option value="play-blue" data-title="Hamlet">Hamlet (Kék)</option>
+                            <option value="play-green" data-title="A Pál utcai fiúk">A Pál utcai fiúk (Zöld)</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Kezdés (10:00 - 19:00)</label>
+                            <input type="number" class="form-control" id="startHour" min="10" max="19" value="15" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Hossz (óra)</label>
+                            <input type="number" class="form-control" id="durationHour" min="1" max="5" value="2" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="submit" class="btn btn-dark">Hozzáadás az idősávhoz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS + Interaktív logika -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let modalInstance;
+
+    function openModal(roomNumber) {
+        document.getElementById('selectedRoom').value = roomNumber;
+        document.getElementById('modalTitle').innerText = `Új előadás felvétele – Terem ${roomNumber}`;
+        
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(document.getElementById('addPlayModal'));
+        }
+        modalInstance.show();
+    }
+
+    function addPlay(event) {
+        event.preventDefault();
+        
+        const room = document.getElementById('selectedRoom').value;
+        const select = document.getElementById('playSelect');
+        const colorClass = select.value;
+        const title = select.options[select.selectedIndex].getAttribute('data-title');
+        
+        const startHour = parseFloat(document.getElementById('startHour').value);
+        const duration = parseFloat(document.getElementById('durationHour').value);
+
+        // Pozíció kiszámítása százalékban (10:00 = 0%, 20:00 = 100%)
+        const leftPercent = (startHour - 10) * 10;
+        const widthPercent = Math.min(duration * 10, 100 - leftPercent);
+
+        const block = document.createElement('div');
+        block.className = `play-block ${colorClass}`;
+        block.style.left = `${leftPercent}%`;
+        block.style.width = `${widthPercent}%`;
+        block.title = title;
+        block.innerText = title;
+
+        document.getElementById(`track-${room}`).appendChild(block);
+        modalInstance.hide();
+    }
+</script>
 </body>
 </html>
