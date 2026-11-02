@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 
 @Controller
-public class WebController {
+public class ShowController {
 
     private final ShowService showService;
 
     // A Controller a Repository helyett már a tiszta Service-t használja
-    public WebController(ShowService showService) {
+    public ShowController(ShowService showService) {
         this.showService = showService;
     }
 
