@@ -1,5 +1,6 @@
 package com.example.szinhaz.controller;
 
+import com.example.szinhaz.service.RoomService;
 import com.example.szinhaz.service.ShowService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,10 +13,11 @@ import java.time.LocalDate;
 public class ShowController {
 
     private final ShowService showService;
+    private final RoomService roomService; // Repository helyett Service!
 
-    // A Controller a Repository helyett már a tiszta Service-t használja
-    public ShowController(ShowService showService) {
+    public ShowController(ShowService showService, RoomService roomService) {
         this.showService = showService;
+        this.roomService = roomService;
     }
 
     @GetMapping("/napi-musor")
