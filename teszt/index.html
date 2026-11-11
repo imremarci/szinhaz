@@ -1,0 +1,4527 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Reszponzív színházi adminisztrációs felület mintaadatokkal.">
+  <title>Színház – adminisztráció</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #20252b;
+      --ink-soft: #343b42;
+      --paper: #ffffff;
+      --canvas: #f3f1eb;
+      --soft: #f7f6f2;
+      --soft-2: #edeae3;
+      --line: #d8d4ca;
+      --line-dark: #c4c0b6;
+      --muted: #666c73;
+      --accent: #c8102e;
+      --accent-dark: #a70d25;
+      --green: #198754;
+      --blue: #3946c7;
+      --radius: 10px;
+      --sidebar-w: 264px;
+      --shadow-sm: 0 2px 0 rgba(32, 37, 43, .08);
+      --shadow-card: 0 14px 36px rgba(32, 37, 43, .08);
+      --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: "Bodoni Moda", "Bodoni MT", Didot, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -10%, rgba(255,255,255,.95) 0, rgba(255,255,255,0) 35%),
+        radial-gradient(circle at 92% 15%, rgba(200,16,46,.045) 0, rgba(200,16,46,0) 26%),
+        var(--canvas);
+      font-family: var(--font-sans);
+      font-size: .95rem;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--accent); }
+    .visually-hidden-focusable:focus {
+      position: fixed;
+      top: .75rem;
+      left: .75rem;
+      z-index: 3000;
+      padding: .6rem 1rem;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 8px;
+    }
+
+    /* Layout */
+    .app-shell { min-height: 100vh; }
+    .workspace {
+      min-height: 100vh;
+      margin-left: var(--sidebar-w);
+      transition: margin-left .28s ease;
+    }
+    .main-content {
+      width: 100%;
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 28px 32px 44px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 1045;
+      display: flex;
+      flex-direction: column;
+      width: var(--sidebar-w);
+      padding: 24px 18px 20px;
+      background: var(--paper);
+      border-right: 2px solid var(--ink);
+      transition: transform .28s ease;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: 2px 8px 19px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .brand-eyebrow {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--muted);
+      font-size: .61rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .brand-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 2.3rem;
+      font-weight: 600;
+      letter-spacing: -.015em;
+      line-height: 1;
+    }
+    .sidebar-nav { margin-top: 26px; }
+    .nav-label {
+      padding: 0 12px 8px;
+      color: var(--muted);
+      font-size: .61rem;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 13px;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-radius: 9px;
+      font-size: .96rem;
+      font-weight: 650;
+      text-align: left;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+    .nav-button i:first-child {
+      width: 1.2rem;
+      color: var(--muted);
+      font-size: 1.06rem;
+      text-align: center;
+      transition: color .18s ease;
+    }
+    .nav-button .nav-arrow {
+      margin-left: auto;
+      color: var(--line-dark);
+      font-size: .75rem;
+      opacity: 0;
+      transform: translateX(-3px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .nav-button:hover { background: var(--soft); }
+    .nav-button:hover .nav-arrow { opacity: 1; transform: translateX(0); }
+    .nav-button.active {
+      color: #fff;
+      background: var(--ink);
+      box-shadow: 0 8px 18px rgba(32,37,43,.15);
+    }
+    .nav-button.active i:first-child { color: #fff; }
+    .nav-button.active .nav-arrow { color: rgba(255,255,255,.55); opacity: 1; transform: translateX(0); }
+    .nav-button:focus-visible { outline: 3px solid rgba(200,16,46,.35); outline-offset: 2px; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 17px 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .sim-sidebar {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .sim-sidebar .live-dot { margin-top: 5px; flex: 0 0 auto; }
+    .sim-sidebar-caption {
+      display: block;
+      color: var(--muted);
+      font-size: .57rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .sim-sidebar strong {
+      display: block;
+      margin-top: 2px;
+      font-size: .8rem;
+      line-height: 1.35;
+    }
+    .sidebar-note {
+      margin: 12px 4px 0;
+      color: var(--muted);
+      font-size: .64rem;
+      line-height: 1.45;
+    }
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1040;
+      visibility: hidden;
+      background: rgba(22, 26, 30, .42);
+      opacity: 0;
+      backdrop-filter: blur(2px);
+      transition: opacity .25s ease, visibility .25s ease;
+    }
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      transition: background .18s ease, border-color .18s ease;
+    }
+    .icon-button:hover { background: var(--soft); border-color: var(--line-dark); }
+    .icon-button:focus-visible { outline: 3px solid rgba(200,16,46,.3); outline-offset: 2px; }
+    .sidebar-close { display: none; margin-top: 2px; }
+
+    /* Top bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1025;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 86px;
+      padding: 15px 32px;
+      background: rgba(243, 241, 235, .88);
+      border-bottom: 1px solid rgba(32,37,43,.09);
+      backdrop-filter: blur(16px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .menu-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      border-radius: 10px;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .menu-button:hover { background: var(--soft); }
+    .menu-button:focus-visible { outline: 3px solid rgba(200,16,46,.3); outline-offset: 2px; }
+    .topbar-eyebrow {
+      display: block;
+      margin-bottom: 1px;
+      color: var(--muted);
+      font-size: .61rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .topbar-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .app-name {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+    }
+    .view-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: .18rem .58rem;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.3px solid var(--ink);
+      border-radius: 999px;
+      font-size: .61rem;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .time-simulator {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 0 0 auto;
+      padding: 8px 9px 8px 14px;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      border-radius: 13px;
+      box-shadow: var(--shadow-sm);
+    }
+    .time-sim-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: .66rem;
+      font-weight: 750;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .time-sim-label .sim-human {
+      padding-left: 7px;
+      color: var(--ink);
+      border-left: 1px solid var(--line);
+      font-size: .66rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .time-sim-controls { display: flex; align-items: center; gap: 5px; }
+    .sim-input {
+      height: 36px;
+      padding: 4px 7px;
+      color: var(--ink);
+      background: var(--soft);
+      border: 1px solid transparent;
+      border-radius: 7px;
+      font-size: .78rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+      transition: background .18s ease, border-color .18s ease;
+    }
+    .sim-input:hover { border-color: var(--line); }
+    .sim-input:focus { background: #fff; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(200,16,46,.11); }
+    .sim-time { width: 82px; }
+    .btn-sim-now {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 36px;
+      padding: 0 9px;
+      color: #fff;
+      background: var(--ink);
+      border: 1px solid var(--ink);
+      border-radius: 7px;
+      font-size: .7rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .btn-sim-now:hover { color: #fff; background: #000; }
+    .live-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(200,16,46,.12);
+      animation: pulse 2.1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(200,16,46,.12); }
+      50% { box-shadow: 0 0 0 5px rgba(200,16,46,.05); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+
+    /* Shared typography and actions */
+    .view-section { display: none; animation: viewIn .26s ease both; }
+    .view-section.active { display: block; }
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+      color: var(--accent);
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .section-kicker::before {
+      content: "";
+      width: 17px;
+      height: 2px;
+      background: currentColor;
+      border-radius: 2px;
+    }
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 2.55vw, 2.7rem);
+      font-weight: 600;
+      letter-spacing: -.012em;
+      line-height: 1.02;
+    }
+    .section-head p {
+      max-width: 680px;
+      margin: 0;
+      color: var(--muted);
+      font-size: .89rem;
+    }
+    .section-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+      flex: 0 0 auto;
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: .35rem .7rem;
+      color: var(--muted);
+      background: rgba(255,255,255,.62);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn {
+      --bs-btn-font-size: .82rem;
+      --bs-btn-font-weight: 700;
+      --bs-btn-padding-y: .58rem;
+      --bs-btn-padding-x: .9rem;
+      border-radius: 6px;
+      letter-spacing: -.01em;
+    }
+    .btn i { font-size: .95em; }
+    .btn-ink {
+      color: #fff;
+      background: var(--ink);
+      border: 1.5px solid var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-ink:hover, .btn-ink:focus { color: #fff; background: #000; border-color: #000; }
+    .btn-accent {
+      color: #fff;
+      background: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+    .btn-accent:hover, .btn-accent:focus { color: #fff; background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn-outline-ink {
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+    }
+    .btn-outline-ink:hover, .btn-outline-ink:focus { color: var(--ink); background: var(--soft-2); border-color: var(--ink); }
+    .btn-ghost {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid transparent;
+    }
+    .btn-ghost:hover { background: var(--soft); border-color: var(--line); }
+    .btn-danger-soft {
+      color: #a51c30;
+      background: #fff4f5;
+      border: 1px solid #f1c7cd;
+    }
+    .btn-danger-soft:hover { color: #fff; background: #a51c30; border-color: #a51c30; }
+    .btn-sm { --bs-btn-font-size: .74rem; --bs-btn-padding-y: .42rem; --bs-btn-padding-x: .66rem; }
+    .icon-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      transition: background .16s ease, border-color .16s ease, color .16s ease;
+    }
+    .icon-action:hover { background: var(--soft); border-color: var(--line-dark); }
+    .icon-action.danger:hover { color: #fff; background: #b51f34; border-color: #b51f34; }
+    .icon-action:focus-visible { outline: 3px solid rgba(200,16,46,.25); outline-offset: 2px; }
+
+    /* Rooms */
+    .room-grid { --bs-gutter-x: 1.35rem; --bs-gutter-y: 1.35rem; }
+    .room-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 398px;
+      padding: 21px 22px 17px;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .room-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 4px;
+      background: var(--room-accent, var(--ink));
+      opacity: .95;
+    }
+    .room-card:hover { transform: translateY(-4px); box-shadow: 7px 8px 0 rgba(32,37,43,.1), var(--shadow-card); }
+    .room-card:focus-visible { outline: 3px solid rgba(200,16,46,.4); outline-offset: 3px; }
+    .room-card.is-live { border-color: var(--ink); }
+    .room-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+    .room-card-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+    }
+    .room-type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .28rem .55rem;
+      color: #fff;
+      background: #68737b;
+      border-radius: 6px;
+      font-size: .59rem;
+      font-weight: 750;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .room-type-badge.live { background: var(--accent); }
+    .stage-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(300px, 88%);
+      height: 46px;
+      margin: 17px auto 17px;
+      color: rgba(255,255,255,.8);
+      filter: drop-shadow(0 6px 5px rgba(32,37,43,.12));
+    }
+    .stage-shape { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .stage-label {
+      position: relative;
+      z-index: 1;
+      margin-top: 6px;
+      color: rgba(255,255,255,.94);
+      font-size: .62rem;
+      font-weight: 800;
+      letter-spacing: .28em;
+      text-indent: .28em;
+      text-shadow: 0 1px 2px rgba(0,0,0,.25);
+    }
+    .mini-map {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 118px;
+      padding: 3px 0 9px;
+    }
+    .mini-row { display: flex; gap: 6px; margin-bottom: 5px; }
+    .mini-group { display: flex; gap: 3px; }
+    .mini-seat {
+      width: 9px;
+      height: 9px;
+      background: #c8ced4;
+      border-radius: 3px 3px 2px 2px;
+      box-shadow: inset 0 -1px 0 rgba(32,37,43,.15);
+    }
+    .mini-seat.is-sold { background: #ce263a; box-shadow: inset 0 -1px 0 rgba(92,0,9,.25); }
+    .mini-empty-note {
+      align-self: center;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: .69rem;
+    }
+    .room-status {
+      margin-top: auto;
+      padding: 12px 13px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .room-status-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .62rem;
+      font-weight: 750;
+      letter-spacing: .055em;
+      text-transform: uppercase;
+    }
+    .status-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--accent);
+    }
+    .status-live .dot {
+      width: 6px;
+      height: 6px;
+      background: currentColor;
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+    .room-status-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .room-status-main strong {
+      overflow: hidden;
+      font-size: .87rem;
+      font-weight: 750;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .room-status-main span { color: var(--muted); font-size: .69rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .room-status-sub {
+      overflow: hidden;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: .67rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .room-occupancy {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .62rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .room-occupancy .progress {
+      flex: 1;
+      height: 4px;
+      background: #e2ded6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .room-occupancy .progress-bar { background: var(--room-color, var(--accent)); border-radius: 4px; }
+    .room-card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-top: 11px;
+      color: var(--muted);
+      font-size: .67rem;
+    }
+    .room-card-foot .open-label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); font-weight: 700; }
+    .room-card-foot .open-label i { transition: transform .18s ease; }
+    .room-card:hover .open-label i { transform: translateX(3px); }
+
+    /* Data views */
+    .data-card {
+      overflow: hidden;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .data-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-card-head h3 { margin: 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: -.005em; }
+    .data-card-head p { margin: 2px 0 0; color: var(--muted); font-size: .73rem; }
+    .table-shell { overflow-x: auto; }
+    .app-table {
+      width: 100%;
+      min-width: 760px;
+      margin: 0;
+      --bs-table-bg: transparent;
+      --bs-table-color: var(--ink);
+      --bs-table-border-color: #e9e6df;
+      font-size: .83rem;
+    }
+    .app-table > :not(caption) > * > * { padding: 14px 18px; vertical-align: middle; border-bottom-color: #e9e6df; }
+    .app-table thead th {
+      color: var(--muted);
+      background: var(--soft);
+      border-bottom: 1px solid var(--line-dark);
+      font-size: .63rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .app-table tbody tr { transition: background .15s ease; }
+    .app-table tbody tr:hover { background: #fbfaf7; }
+    .app-table tbody tr:last-child td { border-bottom: 0; }
+    .play-cell { display: flex; align-items: center; gap: 11px; min-width: 220px; }
+    .play-dot {
+      flex: 0 0 auto;
+      width: 12px;
+      height: 28px;
+      background: var(--play-color, var(--accent));
+      border-radius: 4px;
+    }
+    .play-cell strong { display: block; color: var(--ink); font-family: var(--font-display); font-size: 1rem; font-weight: 600; }
+    .play-cell small { display: block; margin-top: 1px; color: var(--muted); font-size: .67rem; }
+    .muted-strong { color: var(--muted); font-weight: 600; }
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: .2rem .48rem;
+      color: var(--ink);
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: .68rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .count-pill.zero { color: var(--muted); background: transparent; border-style: dashed; }
+    .table-actions { display: flex; justify-content: flex-end; gap: 6px; }
+    .table-empty {
+      padding: 42px 20px !important;
+      color: var(--muted) !important;
+      text-align: center;
+      font-size: .8rem;
+    }
+
+    /* Actor cards */
+    .actor-grid { --bs-gutter-x: 1.35rem; --bs-gutter-y: 1.35rem; }
+    .actor-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 258px;
+      padding: 20px;
+      background: var(--paper);
+      border: 1.5px solid var(--line-dark);
+      border-radius: var(--radius);
+      box-shadow: 0 5px 18px rgba(32,37,43,.035);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .actor-card:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: var(--shadow-card); }
+    .actor-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .actor-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: 50%;
+      font-size: .95rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .rating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: .24rem .5rem;
+      color: #6e5003;
+      background: #fff7da;
+      border: 1px solid #eadba0;
+      border-radius: 6px;
+      font-size: .7rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .rating-badge i { color: #ca9c15; font-size: .66rem; }
+    .actor-name { margin: 15px 0 5px; font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: -.005em; line-height: 1.2; }
+    .star-row { display: flex; align-items: center; gap: 5px; }
+    .stars { position: relative; color: #dedbd3; font-size: .73rem; letter-spacing: 1px; white-space: nowrap; }
+    .stars-fill { position: absolute; inset: 0 auto 0 0; overflow: hidden; color: #d1a51f; }
+    .rating-value { color: var(--muted); font-size: .66rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .actor-roles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 13px;
+      min-height: 23px;
+    }
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      max-width: 100%;
+      padding: .17rem .46rem;
+      overflow: hidden;
+      color: var(--muted);
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      font-size: .6rem;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .actor-meta { margin-top: auto; padding-top: 13px; color: var(--muted); font-size: .65rem; }
+    .actor-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 9px; }
+    .add-actor-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      min-height: 258px;
+      padding: 22px;
+      color: var(--muted);
+      background: transparent;
+      border: 2px dashed var(--line-dark);
+      border-radius: var(--radius);
+      text-align: center;
+      transition: background .18s ease, border-color .18s ease, color .18s ease;
+    }
+    .add-actor-card:hover { color: var(--ink); background: rgba(255,255,255,.52); border-color: var(--ink); }
+    .add-actor-card .plus-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 47px;
+      height: 47px;
+      margin-bottom: 12px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--line-dark);
+      border-radius: 50%;
+      font-size: 1.2rem;
+    }
+    .add-actor-card strong { color: var(--ink); font-family: var(--font-display); font-size: 1.08rem; font-weight: 600; }
+    .add-actor-card span { margin-top: 2px; font-size: .72rem; }
+
+    /* Weekly calendar */
+    .calendar-shell {
+      overflow: hidden;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .calendar-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .week-nav { display: flex; align-items: center; gap: 6px; }
+    .week-nav .week-label {
+      min-width: 205px;
+      padding: 0 9px;
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: -.018em;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .calendar-meta { display: flex; align-items: center; gap: 8px; }
+    .calendar-scroll { overflow-x: auto; overflow-y: hidden; }
+    .week-calendar {
+      min-width: 0;
+      --cal-axis: 67px;
+      --cal-hour: 58px;
+      --cal-head: 65px;
+    }
+    .cal-head-grid {
+      display: grid;
+      grid-template-columns: var(--cal-axis) repeat(7, minmax(110px, 1fr));
+      min-height: var(--cal-head);
+      background: #fbfaf7;
+      border-bottom: 1px solid var(--line-dark);
+    }
+    .cal-corner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      border-right: 1px solid var(--line);
+      font-size: .58rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .cal-day-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 9px 7px;
+      border-right: 1px solid var(--line);
+    }
+    .cal-day-head:last-child { border-right: 0; }
+    .cal-day-name {
+      color: var(--muted);
+      font-size: .61rem;
+      font-weight: 800;
+      letter-spacing: .075em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .cal-day-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      color: var(--ink);
+      border-radius: 50%;
+      font-size: .95rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .cal-day-count {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: .54rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .cal-day-head.is-today { background: #fff8f9; }
+    .cal-day-head.is-today .cal-day-num { color: #fff; background: var(--accent); }
+    .cal-day-head.is-today .cal-day-name { color: var(--accent); }
+    .week-body-grid {
+      display: grid;
+      grid-template-columns: var(--cal-axis) repeat(7, minmax(110px, 1fr));
+      height: calc(var(--cal-hour) * 9);
+    }
+    .cal-time-axis {
+      position: relative;
+      background: #fbfaf7;
+      border-right: 1px solid var(--line);
+    }
+    .cal-hour-label {
+      position: absolute;
+      right: 10px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: .62rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+    .cal-hour-label:first-child { transform: translateY(0); }
+    .cal-day-col {
+      position: relative;
+      border-right: 1px solid var(--line);
+      background-image:
+        linear-gradient(to bottom, #e6e2da 1px, transparent 1px),
+        linear-gradient(to bottom, #f1eee8 1px, transparent 1px);
+      background-position: 0 0, 0 0;
+      background-size: 100% var(--cal-hour), 100% calc(var(--cal-hour) / 2);
+    }
+    .cal-day-col:last-child { border-right: 0; }
+    .cal-day-col.is-today { background-color: #fffdf9; }
+    .week-event {
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 21px;
+      padding: 4px 5px;
+      overflow: hidden;
+      color: var(--event-text, #fff);
+      background: var(--event-color, var(--accent));
+      border: 0;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(32,37,43,.16);
+      font-size: .61rem;
+      line-height: 1.2;
+      text-align: left;
+      transition: filter .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .week-event:hover, .week-event:focus { z-index: 5; filter: saturate(1.08) brightness(1.03); box-shadow: 0 4px 12px rgba(32,37,43,.25); transform: translateY(-1px); outline: 2px solid rgba(255,255,255,.8); outline-offset: -2px; }
+    .week-event-title {
+      overflow: hidden;
+      font-size: .63rem;
+      font-weight: 800;
+      letter-spacing: -.01em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .week-event-meta {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      overflow: hidden;
+      margin-top: 2px;
+      font-size: .55rem;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .week-event-room {
+      display: inline-block;
+      padding: 0 .2rem;
+      background: rgba(255,255,255,.2);
+      border-radius: 3px;
+      font-size: .5rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+    }
+    .cal-now-line {
+      position: absolute;
+      z-index: 4;
+      right: 0;
+      left: 0;
+      height: 0;
+      border-top: 2px solid var(--accent);
+      pointer-events: none;
+    }
+    .cal-now-line::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: -2px;
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border: 1px solid #fff;
+      border-radius: 50%;
+    }
+    .calendar-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 17px;
+      color: var(--muted);
+      background: #fbfaf7;
+      border-top: 1px solid var(--line);
+      font-size: .65rem;
+    }
+    .calendar-foot span { display: inline-flex; align-items: center; gap: 5px; }
+    .calendar-foot i { color: var(--accent); }
+
+    /* Bottom timeline */
+    .timeline-panel {
+      margin-top: 30px;
+      overflow: hidden;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 13px 18px;
+      background: #fbfaf7;
+      border-bottom: 1px solid var(--line);
+    }
+    .timeline-title-wrap { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .timeline-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      text-align: left;
+    }
+    .timeline-toggle:focus-visible { outline: 3px solid rgba(200,16,46,.3); outline-offset: 4px; border-radius: 5px; }
+    .timeline-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: 8px;
+      font-size: .95rem;
+    }
+    .timeline-title {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -.005em;
+      line-height: 1.1;
+    }
+    .timeline-overline {
+      display: block;
+      color: var(--muted);
+      font-size: .56rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .tl-chevron { margin-left: 4px; color: var(--muted); font-size: .76rem; transition: transform .2s ease; }
+    .timeline-toggle[aria-expanded="false"] .tl-chevron { transform: rotate(180deg); }
+    .timeline-date {
+      padding-left: 13px;
+      color: var(--muted);
+      border-left: 1px solid var(--line);
+      font-size: .7rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .timeline-tools { display: flex; align-items: center; justify-content: flex-end; gap: 13px; min-width: 0; }
+    .timeline-legend { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px 11px; }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 155px;
+      color: var(--muted);
+      font-size: .62rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .legend-item .legend-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; }
+    .legend-item .legend-name { overflow: hidden; text-overflow: ellipsis; }
+    .timeline-scroll { overflow-x: auto; overflow-y: hidden; }
+    .timeline-inner { min-width: 780px; }
+    .tl-head, .tl-row {
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+    }
+    .tl-head { height: 40px; border-bottom: 1px solid var(--line); }
+    .tl-head-room {
+      display: flex;
+      align-items: center;
+      padding-left: 17px;
+      color: var(--muted);
+      background: #fbfaf7;
+      border-right: 1px solid var(--line);
+      font-size: .58rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .tl-hours { position: relative; margin: 0 11px; }
+    .tl-hour-label {
+      position: absolute;
+      top: 12px;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: .59rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+    .tl-hour-label:first-child { transform: none; }
+    .tl-hour-label:last-child { transform: translateX(-100%); }
+    .tl-room-row { border-bottom: 1px solid var(--line); }
+    .tl-room-row:last-child { border-bottom: 0; }
+    .tl-room-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 64px;
+      padding: 0 12px 0 17px;
+      background: #fbfaf7;
+      border-right: 1px solid var(--line);
+      font-size: .79rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .tl-room-label i { color: var(--muted); font-size: .72rem; }
+    .tl-track {
+      position: relative;
+      min-height: 64px;
+      margin: 0 11px;
+      background-color: #fff;
+      background-image:
+        linear-gradient(to right, #e2ded6 1px, transparent 1px),
+        linear-gradient(to right, #f1eee7 1px, transparent 1px);
+      background-size: 11.111111% 100%, 5.555556% 100%;
+      cursor: crosshair;
+      transition: background-color .16s ease;
+    }
+    .tl-track:hover { background-color: #fffcf7; }
+    .tl-track:focus-visible { outline: 3px solid rgba(200,16,46,.3); outline-offset: -2px; }
+    .tl-event {
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 26px;
+      padding: 5px 9px;
+      overflow: hidden;
+      color: var(--event-text, #fff);
+      background: var(--event-color, var(--accent));
+      border: 0;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(32,37,43,.12);
+      font-size: .68rem;
+      line-height: 1.25;
+      text-align: left;
+      transition: filter .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .tl-event:hover, .tl-event:focus-visible { z-index: 5; filter: saturate(1.05) brightness(1.03); transform: translateY(-1px); box-shadow: 0 4px 11px rgba(32,37,43,.25); outline: 2px solid rgba(255,255,255,.8); outline-offset: -2px; }
+    .tl-event-title {
+      overflow: hidden;
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: -.01em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tl-event-meta {
+      overflow: hidden;
+      margin-top: 2px;
+      font-size: .57rem;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tl-empty-hint {
+      position: absolute;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+      color: #b2ada3;
+      font-size: .61rem;
+      font-weight: 600;
+      pointer-events: none;
+      transition: opacity .15s ease;
+    }
+    .tl-track:hover .tl-empty-hint { opacity: 0; }
+    .tl-now {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 3;
+      width: 0;
+      border-left: 2px solid var(--accent);
+      pointer-events: none;
+    }
+    .tl-now::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      left: -4px;
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border: 1px solid #fff;
+      border-radius: 50%;
+    }
+    .timeline-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 17px;
+      color: var(--muted);
+      background: #fbfaf7;
+      border-top: 1px solid var(--line);
+      font-size: .64rem;
+    }
+    .timeline-foot span { display: inline-flex; align-items: center; gap: 5px; }
+    .timeline-foot i { color: var(--accent); }
+
+    /* Modals, forms, seat map */
+    .modal-backdrop.show { opacity: .55; }
+    .app-modal {
+      overflow: hidden;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 0 24px 70px rgba(20,24,28,.27);
+    }
+    .app-modal .modal-header {
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 21px 16px;
+      background: #fbfaf7;
+      border-bottom: 1px solid var(--line);
+    }
+    .app-modal .modal-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1.15;
+    }
+    .app-modal .modal-kicker {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--accent);
+      font-size: .57rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .app-modal .modal-subtitle { margin: 3px 0 0; color: var(--muted); font-size: .71rem; }
+    .app-modal .modal-body { padding: 21px; }
+    .app-modal .modal-footer {
+      gap: 7px;
+      padding: 13px 21px;
+      background: #fbfaf7;
+      border-top: 1px solid var(--line);
+    }
+    .modal-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 33px;
+      height: 33px;
+      margin: 0 !important;
+      padding: 0;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: .9rem;
+      opacity: 1;
+    }
+    .modal-close:hover { background: var(--soft-2); }
+    .form-label { margin-bottom: .34rem; color: var(--ink); font-size: .72rem; font-weight: 750; letter-spacing: .005em; }
+    .form-control, .form-select {
+      min-height: 42px;
+      padding: .55rem .7rem;
+      color: var(--ink);
+      background-color: #fff;
+      border: 1.4px solid var(--line-dark);
+      border-radius: 8px;
+      font-size: .82rem;
+      box-shadow: none;
+    }
+    .form-control:focus, .form-select:focus {
+      color: var(--ink);
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(200,16,46,.1);
+    }
+    .form-control::placeholder { color: #a6a198; }
+    .form-select:disabled, .form-control:disabled { background: var(--soft); color: #9b978f; }
+    .form-text { color: var(--muted); font-size: .65rem; }
+    .invalid-feedback { font-size: .67rem; font-weight: 600; }
+    .was-validated .form-control:invalid, .was-validated .form-select:invalid { border-color: #c33a4b; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-field { min-width: 0; }
+    .form-hint { display: flex; align-items: center; gap: 4px; min-height: 18px; margin-top: 4px; color: var(--muted); font-size: .64rem; }
+    .form-hint.is-error { color: #ad2439; }
+    .form-hint.is-ok { color: #16704a; }
+    .form-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 9px 11px;
+      color: #9a1f32;
+      background: #fff5f6;
+      border: 1px solid #edc1c8;
+      border-radius: 8px;
+      font-size: .72rem;
+      line-height: 1.4;
+    }
+    .color-field { display: flex; align-items: center; gap: 9px; }
+    .color-input {
+      flex: 0 0 auto;
+      width: 45px;
+      min-width: 45px;
+      height: 42px;
+      padding: 4px;
+      border: 1.4px solid var(--line-dark);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input::-webkit-color-swatch { border: 0; border-radius: 4px; }
+    .color-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      background: var(--swatch);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px var(--line-dark);
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .color-swatch:hover { transform: scale(1.12); }
+    .color-swatch.is-active { box-shadow: 0 0 0 2px var(--ink); transform: scale(1.07); }
+    .color-preview {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 33px;
+      margin-top: 13px;
+      padding: 7px 9px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+    }
+    .color-preview-bar { width: 5px; height: 19px; background: var(--preview-color, var(--accent)); border-radius: 2px; }
+    .color-preview strong { overflow: hidden; font-size: .7rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .color-preview span:last-child { margin-left: auto; color: var(--muted); font-size: .61rem; white-space: nowrap; }
+
+    .show-form-note {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 2px;
+      padding: 9px 11px;
+      color: var(--muted);
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: .67rem;
+    }
+    .show-form-note i { color: var(--accent); font-size: .9rem; }
+
+    .cast-picker-block { margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .cast-picker-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .cast-picker-head .form-label { margin: 0; }
+    .cast-picker-count { color: var(--accent); font-size: .6rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .cast-picker-hint { margin: 3px 0 9px; color: var(--muted); font-size: .68rem; }
+    .cast-picker {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+      max-height: 252px;
+      overflow-y: auto;
+      padding: 2px;
+      scrollbar-gutter: stable;
+    }
+    .cast-option {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      padding: 8px 10px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .cast-option:hover { border-color: var(--line-dark); }
+    .cast-option.is-selected,
+    .cast-option:has(input:checked) {
+      background: #fff7f5;
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .cast-option:focus-within { outline: 2px solid rgba(200,16,46,.3); outline-offset: 1px; }
+    .cast-option input[type="checkbox"] {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+    .cast-option input[type="checkbox"]:checked {
+      background-color: var(--accent);
+      border-color: var(--accent);
+    }
+    .cast-option input[type="checkbox"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,16,46,.16);
+    }
+    .cast-option-body { min-width: 0; }
+    .cast-option-name {
+      display: block;
+      overflow: hidden;
+      color: var(--ink);
+      font-size: .79rem;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cast-option-meta { display: flex; align-items: center; gap: 3px; color: var(--muted); font-size: .61rem; }
+    .cast-option-meta i { color: #b58a18; font-size: .54rem; }
+    .cast-picker-empty {
+      grid-column: 1 / -1;
+      padding: 12px;
+      color: var(--muted);
+      background: var(--soft);
+      border: 1px dashed var(--line-dark);
+      border-radius: 7px;
+      font-size: .7rem;
+      text-align: center;
+    }
+
+    .show-end-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 63px;
+      margin-top: 15px;
+      padding: 11px 13px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+    .show-end-label { color: var(--muted); font-size: .59rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .show-end-value { display: block; margin-top: 1px; font-size: 1.14rem; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+    .show-end-badge {
+      padding: .25rem .52rem;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      font-size: .65rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .show-room-status-box { margin-top: 12px; }
+    .room-status-list { display: grid; gap: 4px; }
+    .room-status-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 9px;
+      padding: 5px 8px;
+      color: var(--muted);
+      background: #fbfaf7;
+      border-radius: 5px;
+      font-size: .64rem;
+    }
+    .room-status-line strong { color: var(--ink); font-weight: 700; }
+    .availability-badge { padding: .08rem .35rem; border-radius: 4px; font-size: .56rem; font-weight: 800; text-transform: uppercase; letter-spacing: .035em; }
+    .availability-badge.free { color: #166b45; background: #e4f4eb; }
+    .availability-badge.busy { color: #a51c30; background: #feecef; }
+    .show-conflict-note {
+      display: none;
+      align-items: flex-start;
+      gap: 7px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      color: #9a1f32;
+      background: #fff5f6;
+      border: 1px solid #edc1c8;
+      border-radius: 7px;
+      font-size: .67rem;
+      line-height: 1.4;
+    }
+    .show-conflict-note.is-visible { display: flex; }
+    .show-conflict-note i { margin-top: 1px; }
+    .modal-actions-split { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; flex-wrap: wrap; }
+    .modal-actions-right { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+
+    /* Seat map */
+    .seat-modal .modal-dialog { max-width: 1040px; }
+    .seat-modal-header { position: relative; }
+    .seat-modal-header::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--seat-accent, var(--accent));
+    }
+    .seat-modal-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .seat-modal-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+    .seat-modal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: .18rem .46rem;
+      color: var(--muted);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      font-size: .62rem;
+      font-weight: 650;
+    }
+    .seat-stage-wrap { width: min(470px, 82%); height: 61px; margin: 2px auto 19px; }
+    .seat-stage-wrap .stage-label { margin-top: 8px; font-size: .66rem; letter-spacing: .33em; }
+    .seat-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(170px, 1.5fr);
+      gap: 10px;
+      margin-bottom: 17px;
+    }
+    .seat-stat {
+      padding: 9px 11px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .seat-stat span { display: block; color: var(--muted); font-size: .57rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .seat-stat strong { display: block; margin-top: 1px; font-size: 1.12rem; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .seat-progress-box { display: flex; flex-direction: column; justify-content: center; }
+    .seat-progress-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; color: var(--muted); font-size: .6rem; font-weight: 650; }
+    .seat-progress-head strong { color: var(--ink); font-size: .74rem; }
+    .seat-progress { height: 7px; background: #e5e1d9; border-radius: 999px; overflow: hidden; }
+    .seat-progress .progress-bar { border-radius: 999px; }
+    .seat-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 9px 11px;
+      background: #fbfaf7;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .seat-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: .64rem; }
+    .seat-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .seat-swatch { width: 11px; height: 11px; border-radius: 3px; }
+    .seat-swatch.sold { background: #c92034; }
+    .seat-swatch.free { background: #cbd1d6; }
+    .seat-hint { color: var(--muted); font-size: .61rem; }
+    .seat-scroll { max-height: 410px; overflow: auto; padding: 9px 5px 17px; }
+    .seat-layout {
+      width: max-content;
+      min-width: 100%;
+      margin: 0 auto;
+      padding: 8px 4px 4px;
+    }
+    .seat-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px; }
+    .seat-row-label {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 31px;
+      padding-right: 4px;
+      color: var(--muted);
+      font-size: .58rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .seat-row-label.right { justify-content: flex-start; padding-right: 0; padding-left: 4px; }
+    .seat {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 29px;
+      padding: 0;
+      color: #606a72;
+      background: #cbd1d6;
+      border: 0;
+      border-radius: 6px 6px 4px 4px;
+      box-shadow: inset 0 -2px 0 rgba(32,37,43,.1);
+      font-size: .54rem;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      transition: transform .11s ease, filter .11s ease, background .11s ease;
+    }
+    .seat:hover, .seat:focus-visible { transform: translateY(-2px) scale(1.04); filter: brightness(.94); outline: 2px solid var(--ink); outline-offset: 1px; }
+    .seat.is-sold { color: #fff; background: #c92034; box-shadow: inset 0 -2px 0 rgba(88,0,11,.22); }
+    .seat.is-sold:hover { background: #b5192b; }
+    .seat-divider { width: 9px; flex: 0 0 9px; }
+    .seat-aisle-label { color: var(--muted); font-size: .65rem; text-align: center; margin-top: 5px; }
+    .seat-footer-note { color: var(--muted); font-size: .63rem; }
+    .seat-empty {
+      padding: 34px 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: .82rem;
+    }
+    .seat-empty i { display: block; margin-bottom: 8px; color: var(--line-dark); font-size: 2rem; }
+    .seat-event-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 13px;
+    }
+    .seat-event-summary p { margin: 0; color: var(--muted); font-size: .7rem; }
+    .seat-event-summary strong { color: var(--ink); }
+
+    /* Room info */
+    .room-info-hero {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .room-info-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 45px;
+      height: 45px;
+      flex: 0 0 auto;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line-dark);
+      border-radius: 50%;
+      font-size: 1.15rem;
+    }
+    .room-info-hero h4 { margin: 0; font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; letter-spacing: -.005em; }
+    .room-info-hero p { margin: 2px 0 0; color: var(--muted); font-size: .7rem; }
+    .room-schedule-list { display: grid; gap: 6px; margin-top: 15px; }
+    .room-schedule-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 9px;
+      background: #fbfaf7;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+    }
+    .room-schedule-color { width: 6px; height: 31px; flex: 0 0 auto; background: var(--schedule-color, var(--accent)); border-radius: 3px; }
+    .room-schedule-main { min-width: 0; flex: 1; }
+    .room-schedule-main strong { display: block; overflow: hidden; font-size: .73rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .room-schedule-main span { display: block; margin-top: 1px; color: var(--muted); font-size: .61rem; }
+    .empty-room-state { padding: 23px 14px; color: var(--muted); text-align: center; font-size: .76rem; }
+    .empty-room-state i { display: block; margin-bottom: 7px; color: var(--line-dark); font-size: 1.8rem; }
+
+    /* Confirmation modal */
+    .confirm-modal .modal-header { border-bottom: 0; padding-bottom: 0; background: #fff; }
+    .confirm-modal .modal-body { padding-top: 15px; }
+    .confirm-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+      color: #a51c30;
+      background: #fff0f2;
+      border: 1px solid #f0c9cf;
+      border-radius: 50%;
+      font-size: 1.1rem;
+    }
+    .confirm-modal .modal-footer { justify-content: flex-end; }
+    .confirm-body-text { color: var(--muted); font-size: .78rem; line-height: 1.55; }
+    .confirm-body-text strong { color: var(--ink); }
+
+    /* Toasts and misc */
+    .toast-container { z-index: 2090; }
+    .app-toast {
+      overflow: hidden;
+      border: 1.5px solid var(--ink);
+      border-radius: 10px;
+      box-shadow: 0 8px 26px rgba(32,37,43,.16);
+    }
+    .app-toast .toast-body { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; font-size: .75rem; font-weight: 600; }
+    .app-toast .toast-body i { margin-top: 1px; }
+    .app-toast.text-bg-dark { background: var(--ink) !important; }
+    .app-toast.text-bg-success { background: #17653f !important; }
+    .app-toast.text-bg-danger { background: #a51c30 !important; }
+    .empty-state {
+      padding: 45px 24px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255,255,255,.38);
+      border: 1.5px dashed var(--line-dark);
+      border-radius: var(--radius);
+      font-size: .81rem;
+    }
+    .empty-state i { display: block; margin-bottom: 9px; color: var(--line-dark); font-size: 2.1rem; }
+
+    /* Responsive */
+    @media (min-width: 992px) {
+      body.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+      body.sidebar-collapsed .workspace { margin-left: 0; }
+    }
+    @media (max-width: 1399.98px) {
+      .time-sim-label .sim-human { display: none; }
+      .room-card { min-height: 382px; }
+      .seat { width: 30px; height: 28px; }
+    }
+    @media (max-width: 1199.98px) {
+      .main-content { padding: 24px 24px 40px; }
+      .week-calendar { --cal-axis: 56px; }
+      .topbar { padding: 14px 24px; }
+      .topbar-eyebrow { display: none; }
+      .time-simulator { gap: 8px; padding-left: 10px; }
+      .room-card { min-height: 370px; padding: 18px 18px 15px; }
+      .room-card-title { font-size: 1.52rem; }
+      .room-type-badge { font-size: .54rem; }
+      .mini-seat { width: 8px; height: 8px; }
+      .calendar-toolbar { flex-wrap: wrap; }
+      .timeline-legend { max-width: 430px; }
+      .session-actions .meta-chip { display: none; }
+    }
+    @media (max-width: 991.98px) {
+      .sidebar { transform: translateX(-100%); box-shadow: 14px 0 40px rgba(20,24,28,.16); }
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      body.sidebar-open .sidebar-backdrop { visibility: visible; opacity: 1; }
+      body.sidebar-open { overflow: hidden; }
+      .workspace { margin-left: 0; }
+      body.sidebar-collapsed .workspace { margin-left: 0; }
+      .sidebar-close { display: inline-flex; }
+      .topbar { z-index: 1030; }
+      .section-head { align-items: flex-start; flex-direction: column; gap: 13px; }
+      .section-actions { justify-content: flex-start; width: 100%; }
+      .room-card { min-height: 390px; }
+      .room-grid { --bs-gutter-y: 1.1rem; }
+      .timeline-header { align-items: flex-start; flex-direction: column; gap: 10px; }
+      .timeline-tools { width: 100%; justify-content: space-between; }
+      .timeline-legend { justify-content: flex-start; max-width: none; }
+      .timeline-date { margin-left: 0; }
+      .seat-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .seat-progress-box { grid-column: 1 / -1; }
+      .calendar-toolbar { align-items: flex-start; flex-direction: column; }
+      .calendar-meta { width: 100%; justify-content: space-between; }
+    }
+    @media (max-width: 767.98px) {
+      .main-content { padding: 20px 15px 32px; }
+      .topbar { flex-wrap: wrap; gap: 10px; padding: 12px 15px; min-height: 76px; }
+      .topbar-left { width: 100%; }
+      .topbar-title-row { gap: 7px; }
+      .app-name { font-size: 1.35rem; }
+      .view-chip { font-size: .55rem; padding: .14rem .45rem; }
+      .menu-button { width: 39px; height: 39px; }
+      .time-simulator { width: 100%; justify-content: space-between; padding: 7px 8px; gap: 5px; border-radius: 11px; }
+      .time-sim-label { font-size: .6rem; }
+      .time-sim-controls { gap: 4px; }
+      .sim-input { height: 33px; font-size: .72rem; }
+      .sim-time { width: 72px; }
+      .btn-sim-now { height: 33px; padding: 0 7px; }
+      .btn-sim-now span { display: none; }
+      .section-head h2 { font-size: 2rem; }
+      .section-head p { font-size: .81rem; }
+      .section-kicker { font-size: .6rem; }
+      .room-card { min-height: 0; }
+      .mini-map { min-height: 95px; }
+      .stage-wrap { height: 43px; margin: 14px auto 12px; }
+      .actor-card, .add-actor-card { min-height: 228px; }
+      .actor-name { font-size: 1.15rem; }
+      .data-card-head { padding: 13px 15px; }
+      .app-table > :not(caption) > * > * { padding: 11px 13px; }
+      .calendar-toolbar { padding: 11px 12px; }
+      .week-nav { width: 100%; justify-content: space-between; }
+      .week-nav .week-label { min-width: 0; flex: 1; font-size: .73rem; }
+      .week-calendar { --cal-hour: 54px; }
+      .timeline-panel { margin-top: 21px; border-radius: 12px; }
+      .timeline-header { padding: 11px 13px; }
+      .timeline-title { font-size: 1.08rem; }
+      .timeline-date { font-size: .63rem; padding-left: 9px; }
+      .timeline-tools { align-items: flex-start; flex-direction: column-reverse; gap: 7px; }
+      .timeline-legend { width: 100%; gap: 3px 9px; }
+      .legend-item { font-size: .59rem; max-width: 132px; }
+      .timeline-foot { flex-direction: column; align-items: flex-start; gap: 3px; padding: 8px 12px; }
+      .timeline-foot span:last-child { display: none; }
+      .app-modal .modal-body { padding: 17px; }
+      .app-modal .modal-header, .app-modal .modal-footer { padding-left: 17px; padding-right: 17px; }
+      .form-grid { grid-template-columns: 1fr; gap: 11px; }
+      .seat-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .seat-stat { padding: 7px 8px; }
+      .seat-stat strong { font-size: .99rem; }
+      .seat-toolbar { align-items: flex-start; flex-direction: column; gap: 6px; }
+      .seat-scroll { max-height: 44vh; padding-left: 0; padding-right: 0; }
+      .seat { width: 29px; height: 27px; font-size: .51rem; }
+      .seat-row { gap: 4px; }
+      .room-schedule-item { flex-wrap: wrap; }
+      .calendar-foot { align-items: flex-start; flex-direction: column; gap: 3px; }
+    }
+    @media (max-width: 575.98px) {
+      .topbar-eyebrow { display: none; }
+      .topbar-title-row { flex-wrap: wrap; row-gap: 2px; }
+      .time-sim-label { display: none; }
+      .time-sim-controls { width: 100%; justify-content: space-between; }
+      .sim-input { flex: 1; min-width: 0; }
+      .sim-time { flex: 0 0 76px; }
+      .app-name { font-size: 1.28rem; }
+      .section-actions { gap: 6px; }
+      .section-actions .btn { font-size: .77rem; padding: .52rem .68rem; }
+      .room-card { padding: 17px 16px 14px; }
+      .room-card-title { font-size: 1.45rem; }
+      .room-type-badge { font-size: .51rem; padding: .23rem .44rem; }
+      .room-status-main strong { font-size: .82rem; }
+      .star-row { gap: 3px; }
+      .timeline-legend { max-height: 38px; overflow: hidden; }
+      .legend-item { font-size: .56rem; max-width: 105px; }
+      .timeline-date { font-size: .6rem; border-left: 0; padding-left: 0; }
+      .timeline-title-wrap { align-items: flex-start; flex-direction: column; gap: 2px; }
+      .timeline-icon { display: none; }
+      .timeline-tools .btn { width: 100%; }
+      .week-nav .btn span { display: none; }
+      .calendar-meta { flex-wrap: wrap; }
+      .week-calendar { --cal-axis: 56px; --cal-hour: 52px; }
+      .seat-stat span { font-size: .49rem; }
+      .seat-stat strong { font-size: .88rem; }
+      .seat-row-label { width: 23px; }
+      .seat-legend { gap: 8px; font-size: .58rem; }
+      .seat-hint { font-size: .57rem; }
+      .modal-actions-split { flex-direction: column-reverse; align-items: stretch; }
+      .modal-actions-split > * { width: 100%; }
+      .modal-actions-right { flex-direction: column-reverse; align-items: stretch; }
+      .modal-actions-right .btn { width: 100%; }
+      .cast-picker { grid-template-columns: 1fr; max-height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="visually-hidden-focusable" href="#main-content">Ugrás a tartalomra</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Fő navigáció">
+      <div class="sidebar-brand">
+        <div>
+          <span class="brand-eyebrow">Városi intézmény</span>
+          <div class="brand-title">Színház</div>
+        </div>
+        <button class="icon-button sidebar-close" id="sidebarClose" type="button" aria-label="Oldalsáv bezárása">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav" aria-label="Főmenü">
+        <div class="nav-label">Kezelés</div>
+        <div class="nav-list">
+          <button class="nav-button" type="button" data-view-link="szindarabok">
+            <i class="bi bi-book" aria-hidden="true"></i><span>Színdarabok</span><i class="bi bi-chevron-right nav-arrow" aria-hidden="true"></i>
+          </button>
+          <button class="nav-button" type="button" data-view-link="szineszek">
+            <i class="bi bi-person-badge" aria-hidden="true"></i><span>Színészek</span><i class="bi bi-chevron-right nav-arrow" aria-hidden="true"></i>
+          </button>
+          <button class="nav-button active" type="button" data-view-link="termek">
+            <i class="bi bi-door-open" aria-hidden="true"></i><span>Termek</span><i class="bi bi-chevron-right nav-arrow" aria-hidden="true"></i>
+          </button>
+          <button class="nav-button" type="button" data-view-link="eloadasok">
+            <i class="bi bi-calendar3" aria-hidden="true"></i><span>Előadások</span><i class="bi bi-chevron-right nav-arrow" aria-hidden="true"></i>
+          </button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sim-sidebar">
+          <span class="live-dot" aria-hidden="true"></span>
+          <div>
+            <span class="sim-sidebar-caption">Szimulált idő</span>
+            <strong id="sidebarDateTime">Betöltés…</strong>
+          </div>
+        </div>
+        <p class="sidebar-note">Mintaadatokkal működő, memóriabeli adminisztrációs felület.</p>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-button" id="sidebarToggle" type="button" aria-label="Oldalsáv kinyitása" aria-controls="sidebar" aria-expanded="true">
+            <i class="bi bi-list" aria-hidden="true"></i>
+          </button>
+          <div>
+            <span class="topbar-eyebrow">Városi Színház · üzemeltetés</span>
+            <div class="topbar-title-row">
+              <span class="app-name">Színház</span>
+              <span class="view-chip" id="viewChip">Termek</span>
+            </div>
+          </div>
+        </div>
+        <div class="time-simulator" aria-label="Időszimulátor">
+          <div class="time-sim-label">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span>Szimulált idő</span>
+            <span class="sim-human" id="simHuman"></span>
+          </div>
+          <div class="time-sim-controls">
+            <label class="visually-hidden" for="simDate">Szimulált dátum</label>
+            <input class="sim-input" type="date" id="simDate" aria-label="Szimulált dátum">
+            <label class="visually-hidden" for="simTime">Szimulált idő</label>
+            <input class="sim-input sim-time" type="time" id="simTime" step="60" aria-label="Szimulált időpont">
+            <button class="btn btn-sim-now" type="button" id="simNowBtn" title="Ugrás a valós időre" aria-label="Most – ugrás a valós időre">
+              <i class="bi bi-clock-history" aria-hidden="true"></i><span>Most</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <section class="view-section active" id="view-termek" data-view-section="termek" aria-labelledby="termekTitle">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">Élő teremállapot</span>
+              <h2 id="termekTitle">Termek</h2>
+              <p>A szimulált időponthoz tartozó előadások. Kattints egy teremre a jelenleg futó előadás interaktív jegytérképének megnyitásához.</p>
+            </div>
+            <div class="section-actions">
+              <span class="meta-chip" id="roomsNowLabel"><i class="bi bi-broadcast" aria-hidden="true"></i>Most</span>
+            </div>
+          </div>
+          <div class="row room-grid" id="roomCards"></div>
+        </section>
+
+        <section class="view-section" id="view-szindarabok" data-view-section="szindarabok" aria-labelledby="playsTitle">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">Repertoár</span>
+              <h2 id="playsTitle">Színdarabok</h2>
+              <p>A színház műsoron lévő darabjai. A darab színe az idősávban és a heti naptárban is megjelenik.</p>
+            </div>
+            <div class="section-actions">
+              <span class="meta-chip" id="playsMeta"></span>
+              <button class="btn btn-ink" type="button" id="addPlayBtn"><i class="bi bi-plus-lg" aria-hidden="true"></i>Új színdarab</button>
+            </div>
+          </div>
+          <div class="data-card">
+            <div class="data-card-head">
+              <div>
+                <h3>Színdarabok listája</h3>
+                <p id="playsTableCaption">Rendező, játékidő és kapcsolódó előadások egy helyen.</p>
+              </div>
+              <span class="count-pill" id="playsCountPill"></span>
+            </div>
+            <div class="table-shell">
+              <table class="table app-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Színdarab</th>
+                    <th scope="col">Rendező</th>
+                    <th scope="col">Játékidő</th>
+                    <th scope="col">Előadások</th>
+                    <th scope="col">Eladott jegyek</th>
+                    <th scope="col" class="text-end">Műveletek</th>
+                  </tr>
+                </thead>
+                <tbody id="playsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view-section" id="view-szineszek" data-view-section="szineszek" aria-labelledby="actorsTitle">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">Társulat</span>
+              <h2 id="actorsTitle">Színészek</h2>
+              <p>A társulat tagjai értékelésekkel és a hozzájuk kapcsolódó produkciókkal. Új kártyát is felvehetsz a társulatlistára.</p>
+            </div>
+            <div class="section-actions">
+              <span class="meta-chip" id="actorsMeta"></span>
+              <button class="btn btn-ink" type="button" id="addActorBtn"><i class="bi bi-plus-lg" aria-hidden="true"></i>Új színész</button>
+            </div>
+          </div>
+          <div class="row actor-grid" id="actorGrid"></div>
+        </section>
+
+        <section class="view-section" id="view-eloadasok" data-view-section="eloadasok" aria-labelledby="showsTitle">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">Heti naptár</span>
+              <h2 id="showsTitle">Előadások</h2>
+              <p>Heti bontású áttekintés a termek előadásairól. Kattints egy időblokkra a részletes jegytérkép megnyitásához.</p>
+            </div>
+            <div class="section-actions">
+              <span class="meta-chip" id="showsMeta"></span>
+              <button class="btn btn-ink" type="button" id="addShowBtn"><i class="bi bi-plus-lg" aria-hidden="true"></i>Új előadás</button>
+            </div>
+          </div>
+          <div class="calendar-shell">
+            <div class="calendar-toolbar">
+              <div class="week-nav">
+                <button class="icon-action" type="button" id="weekPrev" aria-label="Előző hét"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+                <span class="week-label" id="weekLabel">—</span>
+                <button class="icon-action" type="button" id="weekNext" aria-label="Következő hét"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+                <button class="btn btn-sm btn-outline-ink" type="button" id="weekToday" aria-label="Szimulált hét – ugrás a szimulált hétre"><i class="bi bi-calendar-event" aria-hidden="true"></i><span>Szimulált hét</span></button>
+              </div>
+              <div class="calendar-meta">
+                <span class="meta-chip" id="weekSummary"></span>
+              </div>
+            </div>
+            <div class="calendar-scroll" id="calendarScroll">
+              <div class="week-calendar" id="weekCalendar"></div>
+            </div>
+            <div class="calendar-foot">
+              <span><i class="bi bi-hand-index-thumb" aria-hidden="true"></i>Kattints egy előadásra a jegytérképhez</span>
+              <span><i class="bi bi-info-circle" aria-hidden="true"></i>A piros vonal a szimulált aktuális időt mutatja</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="timeline-panel" aria-labelledby="timelineTitle">
+          <div class="timeline-header">
+            <div class="timeline-title-wrap">
+              <button class="timeline-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#timelineBody" aria-expanded="true" aria-controls="timelineBody">
+                <span class="timeline-icon"><i class="bi bi-calendar3-range" aria-hidden="true"></i></span>
+                <span>
+                  <span class="timeline-overline">Napi műsor · 10:00–19:00</span>
+                  <span class="timeline-title" id="timelineTitle">Idősáv</span>
+                </span>
+                <i class="bi bi-chevron-up tl-chevron" aria-hidden="true"></i>
+              </button>
+              <span class="timeline-date" id="timelineDate">—</span>
+            </div>
+            <div class="timeline-tools">
+              <div class="timeline-legend" id="timelineLegend" aria-label="Színdarabok jelmagyarázata"></div>
+              <button class="btn btn-sm btn-outline-ink" type="button" id="timelineAddBtn"><i class="bi bi-plus-lg" aria-hidden="true"></i>Új előadás</button>
+            </div>
+          </div>
+          <div class="collapse show" id="timelineBody">
+            <div class="timeline-scroll">
+              <div class="timeline-inner" id="timelineArea"></div>
+            </div>
+            <div class="timeline-foot">
+              <span><i class="bi bi-crosshair" aria-hidden="true"></i>Kattints egy üres idősávra új előadás felvételéhez</span>
+              <span id="timelineEventCount"></span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div class="modal fade" id="playModal" tabindex="-1" aria-labelledby="playModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content app-modal">
+        <form id="playForm" novalidate>
+          <div class="modal-header">
+            <div>
+              <span class="modal-kicker">Repertoár</span>
+              <h2 class="modal-title" id="playModalTitle">Új színdarab</h2>
+            </div>
+            <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-alert d-none" id="playFormError" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span></span></div>
+            <div class="form-grid">
+              <div class="form-field" style="grid-column: 1 / -1;">
+                <label class="form-label" for="playTitle">Cím</label>
+                <input class="form-control" id="playTitle" type="text" maxlength="90" required placeholder="Például: Rómeó és Júlia" autocomplete="off">
+                <div class="invalid-feedback">Add meg a színdarab címét.</div>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="playDirector">Rendező</label>
+                <input class="form-control" id="playDirector" type="text" maxlength="70" required placeholder="Rendező neve" autocomplete="off">
+                <div class="invalid-feedback">Add meg a rendező nevét.</div>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="playDuration">Játékidő (perc)</label>
+                <input class="form-control" id="playDuration" type="number" min="15" max="300" step="5" required placeholder="120">
+                <div class="invalid-feedback">15 és 300 perc közötti értéket adj meg.</div>
+              </div>
+              <div class="form-field" style="grid-column: 1 / -1;">
+                <label class="form-label" for="playColor">Szín az idősávhoz</label>
+                <div class="color-field">
+                  <input class="color-input" id="playColor" type="color" value="#c8102e" required aria-label="Színdarab színe">
+                  <div class="color-swatches" id="playColorSwatches" aria-label="Előre beállított színek"></div>
+                </div>
+                <div class="form-text mt-1">Ez a szín jelenik meg a naptárban, az idősávban és a jegytérkép hangsúlyaként.</div>
+                <div class="color-preview" id="playColorPreview">
+                  <span class="color-preview-bar" aria-hidden="true"></span>
+                  <strong id="playColorPreviewTitle">Előnézet</strong>
+                  <span id="playColorPreviewDuration">— perc</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Mégse</button>
+            <button class="btn btn-ink" type="submit" id="playSaveBtn"><i class="bi bi-check-lg" aria-hidden="true"></i>Mentés</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="actorModal" tabindex="-1" aria-labelledby="actorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content app-modal">
+        <form id="actorForm" novalidate>
+          <div class="modal-header">
+            <div>
+              <span class="modal-kicker">Társulat</span>
+              <h2 class="modal-title" id="actorModalTitle">Új színész</h2>
+            </div>
+            <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-alert d-none" id="actorFormError" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span></span></div>
+            <div class="form-field mb-3">
+              <label class="form-label" for="actorName">Név</label>
+              <input class="form-control" id="actorName" type="text" maxlength="70" required placeholder="Színész neve" autocomplete="off">
+              <div class="invalid-feedback">Add meg a színész nevét.</div>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="actorRating">Értékelés (0–5)</label>
+              <input class="form-control" id="actorRating" type="number" min="0" max="5" step="0.1" required placeholder="4,5">
+              <div class="invalid-feedback">0 és 5 közötti értéket adj meg.</div>
+              <div class="form-text mt-1">Tizedes érték is megadható, például 4,7. Az értékelés a színész kártyáján jelenik meg.</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Mégse</button>
+            <button class="btn btn-ink" type="submit" id="actorSaveBtn"><i class="bi bi-check-lg" aria-hidden="true"></i>Mentés</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="showModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content app-modal">
+        <form id="showForm" novalidate>
+          <div class="modal-header">
+            <div>
+              <span class="modal-kicker">Műsorrend</span>
+              <h2 class="modal-title" id="showModalTitle">Új előadás felvétele</h2>
+              <p class="modal-subtitle" id="showModalSubtitle">A rendszer foglaltság alapján kizárja az ütköző termeket.</p>
+            </div>
+            <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-alert d-none" id="showFormError" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span></span></div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label" for="showPlay">Színdarab</label>
+                <select class="form-select" id="showPlay" required></select>
+                <div class="form-hint" id="showPlayHint"></div>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="showRoom">Terem</label>
+                <select class="form-select" id="showRoom" required></select>
+                <div class="form-hint" id="showRoomHint"></div>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="showDate">Dátum</label>
+                <input class="form-control" id="showDate" type="date" required>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="showStart">Kezdés</label>
+                <input class="form-control" id="showStart" type="time" step="900" min="10:00" max="19:00" required>
+                <div class="form-hint">Az idősáv 10:00 és 19:00 között elérhető.</div>
+              </div>
+            </div>
+            <div class="show-end-box">
+              <div>
+                <span class="show-end-label">Számított befejezés</span>
+                <strong class="show-end-value" id="showEndTime">—</strong>
+              </div>
+              <span class="show-end-badge" id="showDurationBadge">—</span>
+            </div>
+            <div class="show-room-status-box">
+              <div class="show-end-label mb-1">Termek elérhetősége a kiválasztott időpontban</div>
+              <div class="room-status-list" id="showRoomAvailability"></div>
+            </div>
+            <div class="show-conflict-note" id="showConflictNote" role="status">
+              <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+              <span></span>
+            </div>
+            <div class="show-form-note mt-3">
+              <i class="bi bi-shield-check" aria-hidden="true"></i>
+              <span>A mentés csak akkor engedélyezett, ha a kiválasztott teremben nincs átfedő előadás, és az előadás 19:00 előtt befejeződik.</span>
+            </div>
+            <div class="cast-picker-block">
+              <div class="cast-picker-head">
+                <span class="form-label" id="showCastLabel">Szereplők</span>
+                <span class="cast-picker-count" id="showCastCount" aria-live="polite">Nincs kiválasztva</span>
+              </div>
+              <p class="cast-picker-hint">Jelöld be, kik játszanak ezen az előadáson. A színészek kártyáin ez alapján jelennek meg a darabok.</p>
+              <div class="cast-picker" id="showCastPicker" role="group" aria-labelledby="showCastLabel"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Mégse</button>
+            <button class="btn btn-ink" type="submit" id="showSaveBtn"><i class="bi bi-calendar-plus" aria-hidden="true"></i>Előadás mentése</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade seat-modal" id="seatModal" tabindex="-1" aria-labelledby="seatModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content app-modal">
+        <div class="modal-header seat-modal-header" id="seatModalHeader"></div>
+        <div class="modal-body" id="seatModalBody"></div>
+        <div class="modal-footer">
+          <div class="modal-actions-split">
+            <button class="btn btn-danger-soft" type="button" id="deleteShowBtn"><i class="bi bi-trash3" aria-hidden="true"></i>Előadás törlése</button>
+            <div class="modal-actions-right">
+              <button class="btn btn-ink" type="button" id="editShowBtn"><i class="bi bi-pencil-square" aria-hidden="true"></i>Előadás szerkesztése</button>
+              <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Bezárás</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="roomInfoModal" tabindex="-1" aria-labelledby="roomInfoTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content app-modal">
+        <div class="modal-header">
+          <div>
+            <span class="modal-kicker">Terem</span>
+            <h2 class="modal-title" id="roomInfoTitle">Terem</h2>
+          </div>
+          <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+        <div class="modal-body" id="roomInfoBody"></div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Bezárás</button>
+          <button class="btn btn-ink" type="button" id="roomInfoAddShow"><i class="bi bi-plus-lg" aria-hidden="true"></i>Új előadás</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade confirm-modal" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content app-modal">
+        <div class="modal-header">
+          <div>
+            <div class="confirm-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+            <h2 class="modal-title" id="confirmTitle">Megerősítés</h2>
+          </div>
+          <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="confirm-body-text" id="confirmBody"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-ink" type="button" data-bs-dismiss="modal">Mégse</button>
+          <button class="btn btn-accent" type="button" id="confirmActionBtn">Törlés</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+(() => {
+  'use strict';
+
+  const HOUR_START = 10;
+  const HOUR_END = 19;
+  const DAY_START_MIN = HOUR_START * 60;
+  const DAY_END_MIN = HOUR_END * 60;
+  const DAY_SPAN_MIN = DAY_END_MIN - DAY_START_MIN;
+  const MINUTE_MS = 60 * 1000;
+
+  const VIEW_META = {
+    termek: { label: 'Termek' },
+    szindarabok: { label: 'Színdarabok' },
+    szineszek: { label: 'Színészek' },
+    eloadasok: { label: 'Előadások' }
+  };
+
+  const ROOM_TYPES = { 1: 'Nagyterem', 2: 'Kamaraterem', 3: 'Stúdióterem' };
+  const COLOR_PRESETS = ['#c8102e', '#3946c7', '#198754', '#d87516', '#7b3fa0', '#0f6d7a'];
+  const WEEKDAY_SHORT = ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'];
+  const MONTHS_HU = ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'];
+
+  const state = {
+    termek: [],
+    szindarabok: [],
+    szineszek: [],
+    musorok: [],
+    szereplesek: [],
+    jegyek: [],
+    currentView: 'termek',
+    simNow: new Date(),
+    calendarWeekStart: new Date(),
+    editingPlayId: null,
+    editingActorId: null,
+    editingShowId: null,
+    activeSeatShowId: null,
+    roomInfoId: null,
+    lastConflictKeys: new Set(),
+    confirmResolve: null
+  };
+
+  const dom = {};
+
+  /* ----------------------------------------------------------------------- */
+  /* Utilities                                                               */
+  /* ----------------------------------------------------------------------- */
+
+  const qs = (selector, root = document) => root.querySelector(selector);
+  const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[character]));
+  }
+
+  function pad2(number) {
+    return String(number).padStart(2, '0');
+  }
+
+  function localDateKey(date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  }
+
+  function localTimeValue(date) {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  }
+
+  function dateFromKey(key) {
+    if (!key) return null;
+    const parts = key.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+    const date = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function atLocal(date, hours, minutes = 0) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, 0, 0);
+  }
+
+  function combineDateAndTime(dateKey, timeValue) {
+    const date = dateFromKey(dateKey);
+    if (!date || !timeValue) return null;
+    const parts = timeValue.split(':').map(Number);
+    if (parts.length < 2 || parts.some(Number.isNaN)) return null;
+    const result = atLocal(date, parts[0], parts[1]);
+    return Number.isNaN(result.getTime()) ? null : result;
+  }
+
+  function startOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+  }
+
+  function startOfWeek(date) {
+    const result = startOfDay(date);
+    const offset = (result.getDay() + 6) % 7;
+    result.setDate(result.getDate() - offset);
+    return result;
+  }
+
+  function addDays(date, amount) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + amount);
+    return result;
+  }
+
+  function addMinutes(date, amount) {
+    return new Date(date.getTime() + amount * MINUTE_MS);
+  }
+
+  function minutesOfDay(date) {
+    return date.getHours() * 60 + date.getMinutes();
+  }
+
+  function isSameDay(left, right) {
+    return localDateKey(left) === localDateKey(right);
+  }
+
+  function capitalize(text) {
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+  }
+
+  function formatTime(date) {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  }
+
+  function formatTimeRange(start, end) {
+    return `${formatTime(start)}–${formatTime(end)}`;
+  }
+
+  function formatDateLong(date) {
+    const formatter = new Intl.DateTimeFormat('hu-HU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    });
+    return capitalize(formatter.format(date));
+  }
+
+  function formatDateShort(date) {
+    return new Intl.DateTimeFormat('hu-HU', {
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  }
+
+  function formatWeekRange(start, end) {
+    const startMonth = MONTHS_HU[start.getMonth()];
+    const endMonth = MONTHS_HU[end.getMonth()];
+    const endYear = end.getFullYear() !== start.getFullYear() ? ` ${end.getFullYear()}.` : '';
+    return `${start.getFullYear()}. ${startMonth} ${start.getDate()}. – ${endMonth} ${end.getDate()}.${endYear}`;
+  }
+
+  function formatRating(value) {
+    return new Intl.NumberFormat('hu-HU', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }).format(Number(value) || 0);
+  }
+
+  function pluralHu(count, singular, plural) {
+    return `${count} ${count === 1 ? singular : plural}`;
+  }
+
+  function normalizeHex(color) {
+    if (typeof color !== 'string') return '#c8102e';
+    const trimmed = color.trim();
+    if (/^#[0-9a-f]{6}$/i.test(trimmed)) return trimmed.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(trimmed)) {
+      return `#${trimmed.slice(1).split('').map((character) => character + character).join('')}`.toLowerCase();
+    }
+    return '#c8102e';
+  }
+
+  function rgbFromHex(hex) {
+    const normalized = normalizeHex(hex).slice(1);
+    return {
+      r: parseInt(normalized.slice(0, 2), 16),
+      g: parseInt(normalized.slice(2, 4), 16),
+      b: parseInt(normalized.slice(4, 6), 16)
+    };
+  }
+
+  function relativeLuminance(hex) {
+    const channel = (value) => {
+      const c = value / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    const { r, g, b } = rgbFromHex(hex);
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  }
+
+  function readableTextColor(hex) {
+    const luminance = relativeLuminance(hex);
+    const whiteContrast = 1.05 / (luminance + 0.05);
+    const inkContrast = (luminance + 0.05) / (relativeLuminance('#20252b') + 0.05);
+    return whiteContrast >= inkContrast ? '#ffffff' : '#20252b';
+  }
+
+  function initials(name) {
+    const words = String(name).trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase();
+  }
+
+  function nextId(items) {
+    return items.length ? Math.max(...items.map((item) => Number(item.id) || 0)) + 1 : 1;
+  }
+
+  function seededRandom(seed) {
+    let value = seed >>> 0;
+    return function random() {
+      value += 0x6D2B79F5;
+      let result = value;
+      result = Math.imul(result ^ (result >>> 15), result | 1);
+      result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+      return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function stageSvgTemplate() {
+    return `<svg class="stage-shape" viewBox="0 0 320 50" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M1 4 C80 26 240 26 319 4 C282 50 38 50 1 4 Z" fill="#343d44"></path>
+      <path d="M1 4 C80 26 240 26 319 4" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.2"></path>
+    </svg>`;
+  }
+
+  function getPlay(id) {
+    return state.szindarabok.find((play) => play.id === Number(id)) || null;
+  }
+
+  function getRoom(id) {
+    return state.termek.find((room) => room.id === Number(id)) || null;
+  }
+
+  function getActor(id) {
+    return state.szineszek.find((actor) => actor.id === Number(id)) || null;
+  }
+
+  function getShow(id) {
+    return state.musorok.find((show) => show.id === Number(id)) || null;
+  }
+
+  function getShowStart(show) {
+    return new Date(show.kezdes_iso);
+  }
+
+  function getShowDuration(show) {
+    return Number(getPlay(show?.szindarab_id)?.idotartam) || 0;
+  }
+
+  function getShowEnd(show) {
+    return addMinutes(getShowStart(show), getShowDuration(show));
+  }
+
+  function getShowTickets(showId) {
+    return state.jegyek.filter((ticket) => ticket.musor_id === Number(showId));
+  }
+
+  function getShowsOnDate(date) {
+    const key = localDateKey(date);
+    return state.musorok
+      .filter((show) => localDateKey(getShowStart(show)) === key)
+      .sort((left, right) => getShowStart(left) - getShowStart(right));
+  }
+
+  function getCurrentShowForRoom(roomId, now = state.simNow) {
+    return state.musorok.find((show) => {
+      if (show.terem_id !== Number(roomId)) return false;
+      const start = getShowStart(show);
+      const end = getShowEnd(show);
+      return now >= start && now < end;
+    }) || null;
+  }
+
+  function getNextShowForRoom(roomId, now = state.simNow) {
+    return state.musorok
+      .filter((show) => show.terem_id === Number(roomId) && getShowStart(show) > now)
+      .sort((left, right) => getShowStart(left) - getShowStart(right))[0] || null;
+  }
+
+  function findConflict(roomId, startDate, durationMinutes, excludeShowId = null) {
+    const start = startDate.getTime();
+    const end = start + Number(durationMinutes) * MINUTE_MS;
+    return state.musorok.find((show) => {
+      if (show.terem_id !== Number(roomId)) return false;
+      if (excludeShowId !== null && show.id === Number(excludeShowId)) return false;
+      const otherStart = getShowStart(show).getTime();
+      const otherEnd = getShowEnd(show).getTime();
+      return start < otherEnd && end > otherStart;
+    }) || null;
+  }
+
+  function roomTypeName(room) {
+    return ROOM_TYPES[room.id] || 'Terem';
+  }
+
+  function roomName(room) {
+    return room ? room.nev : 'Ismeretlen terem';
+  }
+
+  function getCurrentShowLabel(roomId) {
+    const show = getCurrentShowForRoom(roomId);
+    if (!show) return 'szabad';
+    return getPlay(show.szindarab_id)?.cim || 'előadás';
+  }
+
+  function colorStyle(hex) {
+    const color = normalizeHex(hex);
+    return `--event-color:${color};--event-text:${readableTextColor(color)}`;
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Seed data                                                               */
+  /* ----------------------------------------------------------------------- */
+
+  function seedData() {
+    const today = startOfDay(new Date());
+    const monday = startOfWeek(today);
+    const todayIndex = (today.getDay() + 6) % 7;
+
+    state.termek = [
+      { id: 1, nev: 'Terem 1', sorok_szama: 6, szekek_szama: 12 },
+      { id: 2, nev: 'Terem 2', sorok_szama: 5, szekek_szama: 10 },
+      { id: 3, nev: 'Terem 3', sorok_szama: 4, szekek_szama: 8 }
+    ];
+
+    state.szindarabok = [
+      { id: 1, cim: 'Rómeó és Júlia', rendezo: 'Kovács Márton', idotartam: 110, szin: '#c8102e' },
+      { id: 2, cim: 'Hamlet', rendezo: 'Székely Réka', idotartam: 140, szin: '#3946c7' },
+      { id: 3, cim: 'A Pál utcai fiúk', rendezo: 'Dobos András', idotartam: 100, szin: '#198754' },
+      { id: 4, cim: 'Sirály', rendezo: 'Fenyvesi Júlia', idotartam: 90, szin: '#d87516' },
+      { id: 5, cim: 'Macskajáték', rendezo: 'Barta Gábor', idotartam: 110, szin: '#7b3fa0' }
+    ];
+
+    state.szineszek = [
+      { id: 1, nev: 'Balogh Anna', ertekeles: 4.9 },
+      { id: 2, nev: 'Kerekes Dániel', ertekeles: 4.7 },
+      { id: 3, nev: 'Szabó Lilla', ertekeles: 4.8 },
+      { id: 4, nev: 'Nagy Bence', ertekeles: 4.4 },
+      { id: 5, nev: 'Tóth Eszter', ertekeles: 4.6 },
+      { id: 6, nev: 'Farkas Máté', ertekeles: 4.3 },
+      { id: 7, nev: 'Molnár Réka', ertekeles: 4.9 },
+      { id: 8, nev: 'Varga Ádám', ertekeles: 4.5 }
+    ];
+
+    const shows = [];
+    let showSequence = 0;
+
+    const appendShow = (date, roomId, playId, hours, minutes) => {
+      const start = atLocal(date, hours, minutes);
+      const play = getPlay(playId);
+      const room = getRoom(roomId);
+      if (!play || !room) return;
+      showSequence += 1;
+      shows.push({
+        id: showSequence,
+        terem_id: roomId,
+        szindarab_id: playId,
+        kezdes_iso: start.toISOString()
+      });
+    };
+
+    // A szimulált "mai" nap gazdag műsora: mindhárom teremben fusson előadás 14 óra körül.
+    const todayPlan = [
+      [10, 0, 1, 1],
+      [11, 0, 2, 4],
+      [10, 30, 3, 3],
+      [13, 0, 1, 2],
+      [13, 30, 2, 1],
+      [13, 30, 3, 3],
+      [16, 0, 1, 4],
+      [16, 30, 3, 2]
+    ];
+    todayPlan.forEach(([hours, minutes, roomId, playId]) => {
+      appendShow(today, roomId, playId, hours, minutes);
+    });
+
+    const otherDayPlans = [
+      [ // hétfő
+        [16, 0, 1, 3], [17, 0, 2, 4], [15, 30, 3, 5]
+      ],
+      [ // kedd
+        [14, 0, 1, 3], [15, 0, 2, 2], [10, 0, 3, 4]
+      ],
+      [ // szerda
+        [10, 0, 1, 1], [14, 0, 2, 4], [15, 0, 3, 2]
+      ],
+      [ // csütörtök
+        [15, 0, 1, 2], [16, 0, 2, 5], [10, 30, 3, 3]
+      ],
+      [ // péntek
+        [10, 0, 1, 3], [16, 0, 1, 4], [15, 0, 2, 1], [17, 0, 3, 5]
+      ],
+      [ // szombat
+        [10, 0, 1, 3], [10, 30, 2, 5], [13, 0, 3, 2],
+        [14, 0, 1, 1], [15, 0, 2, 1], [17, 0, 1, 4]
+      ],
+      [ // vasárnap
+        [10, 0, 3, 1], [10, 30, 1, 5], [11, 0, 2, 3],
+        [13, 0, 2, 2], [15, 0, 1, 1], [15, 0, 3, 5]
+      ]
+    ];
+
+    otherDayPlans.forEach((plan, index) => {
+      if (index === todayIndex) return;
+      const date = addDays(monday, index);
+      plan.forEach(([hours, minutes, roomId, playId]) => {
+        appendShow(date, roomId, playId, hours, minutes);
+      });
+    });
+
+    state.musorok = shows.sort((left, right) => getShowStart(left) - getShowStart(right));
+
+    // Kezdeti jegyeladások: stabil, ismételhető mintázat.
+    let ticketId = 0;
+    state.musorok.forEach((show) => {
+      const room = getRoom(show.terem_id);
+      const play = getPlay(show.szindarab_id);
+      if (!room || !play) return;
+
+      const capacity = room.sorok_szama * room.szekek_szama;
+      const random = seededRandom(show.id * 907 + 41);
+      const seatList = [];
+      for (let row = 1; row <= room.sorok_szama; row += 1) {
+        for (let seat = 1; seat <= room.szekek_szama; seat += 1) {
+          seatList.push({ sor: row, szek: seat });
+        }
+      }
+      for (let index = seatList.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(random() * (index + 1));
+        [seatList[index], seatList[swapIndex]] = [seatList[swapIndex], seatList[index]];
+      }
+
+      const ratio = 0.38 + random() * 0.43;
+      const targetSold = Math.max(1, Math.min(capacity - 4, Math.round(capacity * ratio)));
+      seatList.slice(0, targetSold).forEach((seat) => {
+        ticketId += 1;
+        state.jegyek.push({
+          id: ticketId,
+          musor_id: show.id,
+          sor: seat.sor,
+          szek: seat.szek,
+          statusz: 'megvasarolt'
+        });
+      });
+    });
+
+    const castsByPlay = {
+      1: [1, 2, 5],
+      2: [2, 4, 8],
+      3: [3, 5, 7],
+      4: [4, 6, 7],
+      5: [1, 3, 6, 8]
+    };
+    state.musorok.forEach((show) => {
+      (castsByPlay[show.szindarab_id] || []).forEach((actorId) => {
+        state.szereplesek.push({ szinesz_id: actorId, musor_id: show.id });
+      });
+    });
+
+    const sim = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0, 0);
+    state.simNow = sim;
+    state.calendarWeekStart = startOfWeek(sim);
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Renderers                                                               */
+  /* ----------------------------------------------------------------------- */
+
+  function splitSeatGroups(count) {
+    if (count <= 4) return [count];
+    const first = Math.ceil(count / 3);
+    const second = Math.ceil((count - first) / 2);
+    return [first, second, count - first - second].filter((value) => value > 0);
+  }
+
+  function renderMiniSeats(room, tickets) {
+    const soldKeys = new Set(tickets.map((ticket) => `${ticket.sor}:${ticket.szek}`));
+    const groups = splitSeatGroups(room.szekek_szama);
+    const rows = [];
+    for (let row = 1; row <= room.sorok_szama; row += 1) {
+      let seatNumber = 1;
+      const renderedGroups = groups.map((groupSize) => {
+        const seats = [];
+        for (let index = 0; index < groupSize; index += 1) {
+          const isSold = soldKeys.has(`${row}:${seatNumber}`);
+          seats.push(`<span class="mini-seat${isSold ? ' is-sold' : ''}"></span>`);
+          seatNumber += 1;
+        }
+        return `<span class="mini-group">${seats.join('')}</span>`;
+      });
+      rows.push(`<div class="mini-row">${renderedGroups.join('')}</div>`);
+    }
+    return rows.join('');
+  }
+
+  function renderRooms() {
+    if (!dom.roomCards) return;
+    const nowLabel = `${formatDateLong(state.simNow)} · ${formatTime(state.simNow)}`;
+    dom.roomsNowLabel.innerHTML = `<i class="bi bi-broadcast" aria-hidden="true"></i>${escapeHtml(nowLabel)}`;
+
+    dom.roomCards.innerHTML = state.termek.map((room) => {
+      const currentShow = getCurrentShowForRoom(room.id);
+      const nextShow = getNextShowForRoom(room.id);
+      const focusShow = currentShow || nextShow;
+      const play = focusShow ? getPlay(focusShow.szindarab_id) : null;
+      const tickets = focusShow ? getShowTickets(focusShow.id) : [];
+      const capacity = room.sorok_szama * room.szekek_szama;
+      const sold = tickets.length;
+      const percent = capacity ? Math.round((sold / capacity) * 100) : 0;
+      const accent = play ? normalizeHex(play.szin) : '#b7b2a9';
+      const isLive = Boolean(currentShow);
+      let statusMarkup = '';
+      let footerLabel = 'Terem áttekintése';
+      let ariaLabel = `${room.nev} – jelenleg nincs futó előadás. Terem áttekintése.`;
+
+      if (currentShow && play) {
+        const start = getShowStart(currentShow);
+        const end = getShowEnd(currentShow);
+        footerLabel = 'Jegytérkép megnyitása';
+        ariaLabel = `${room.nev} – most fut: ${play.cim}. Jegytérkép megnyitása.`;
+        statusMarkup = `
+          <div class="room-status">
+            <div class="room-status-top">
+              <span class="status-live"><span class="dot" aria-hidden="true"></span>Most fut</span>
+              <span>${sold} / ${capacity} jegy</span>
+            </div>
+            <div class="room-status-main">
+              <strong title="${escapeHtml(play.cim)}">${escapeHtml(play.cim)}</strong>
+              <span>${formatTimeRange(start, end)}</span>
+            </div>
+            <div class="room-status-sub">${play.idotartam} perc · Rendezi: ${escapeHtml(play.rendezo)}</div>
+            <div class="room-occupancy">
+              <div class="progress" role="progressbar" aria-label="Kihasználtság" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:${percent}%"></div>
+              </div>
+              <span>${percent}%</span>
+            </div>
+          </div>`;
+      } else if (nextShow && play) {
+        const start = getShowStart(nextShow);
+        const end = getShowEnd(nextShow);
+        const nextDateLabel = isSameDay(start, state.simNow) ? 'ma' : formatDateShort(start);
+        footerLabel = 'Terem áttekintése';
+        ariaLabel = `${room.nev} – szabad terem. Következő előadás: ${play.cim}, ${formatDateLong(start)}.`;
+        statusMarkup = `
+          <div class="room-status">
+            <div class="room-status-top">
+              <span>Következő előadás</span>
+              <span>${escapeHtml(nextDateLabel)}</span>
+            </div>
+            <div class="room-status-main">
+              <strong title="${escapeHtml(play.cim)}">${escapeHtml(play.cim)}</strong>
+              <span>${formatTimeRange(start, end)}</span>
+            </div>
+            <div class="room-status-sub">A terem most szabad · ${play.idotartam} perc</div>
+            <div class="room-occupancy">
+              <div class="progress" role="progressbar" aria-label="Következő előadás kihasználtsága" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:${percent}%"></div>
+              </div>
+              <span>${sold} / ${capacity}</span>
+            </div>
+          </div>`;
+      } else {
+        statusMarkup = `
+          <div class="room-status">
+            <div class="room-status-top">
+              <span>Szabad terem</span>
+              <span>Nincs közelgő előadás</span>
+            </div>
+            <div class="room-status-main">
+              <strong>Nincs beütemezett előadás</strong>
+            </div>
+            <div class="room-status-sub">Vegyél fel előadást az alsó idősávból vagy a naptárból.</div>
+            <div class="room-occupancy">
+              <div class="progress" role="progressbar" aria-label="Kihasználtság" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:0%"></div></div>
+              <span>0%</span>
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="col-12 col-lg-4">
+          <article class="room-card${isLive ? ' is-live' : ''}" style="--room-accent:${accent};--room-color:${accent}" data-room-card="${room.id}" role="button" tabindex="0" aria-label="${escapeHtml(ariaLabel)}">
+            <div class="room-card-head">
+              <h3 class="room-card-title">${escapeHtml(room.nev)}</h3>
+              <span class="room-type-badge">${escapeHtml(roomTypeName(room))}</span>
+            </div>
+            <div class="stage-wrap">
+              ${stageSvgTemplate()}
+              <span class="stage-label">SZÍNPAD</span>
+            </div>
+            <div class="mini-map" aria-hidden="true">${renderMiniSeats(room, tickets)}</div>
+            ${statusMarkup}
+            <div class="room-card-foot">
+              <span>${capacity} férőhely</span>
+              <span class="open-label">${escapeHtml(footerLabel)} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+            </div>
+          </article>
+        </div>`;
+    }).join('');
+  }
+
+  function renderPlays() {
+    if (!dom.playsTableBody) return;
+    const totalShows = state.musorok.length;
+    dom.playsMeta.innerHTML = `<i class="bi bi-collection" aria-hidden="true"></i>${state.szindarabok.length} darab · ${totalShows} előadás`;
+    dom.playsCountPill.textContent = pluralHu(state.szindarabok.length, 'színdarab', 'színdarab');
+    dom.playsTableCaption.textContent = 'Rendező, játékidő és kapcsolódó előadások egy helyen.';
+
+    if (!state.szindarabok.length) {
+      dom.playsTableBody.innerHTML = `<tr><td colspan="6" class="table-empty">Még nincs színdarab a repertoárban. Add hozzá az elsőt az „Új színdarab” gombbal.</td></tr>`;
+      return;
+    }
+
+    dom.playsTableBody.innerHTML = state.szindarabok.map((play) => {
+      const linkedShows = state.musorok.filter((show) => show.szindarab_id === play.id);
+      const showIds = new Set(linkedShows.map((show) => show.id));
+      const soldTickets = state.jegyek.filter((ticket) => showIds.has(ticket.musor_id)).length;
+      const color = normalizeHex(play.szin);
+      return `
+        <tr>
+          <td>
+            <div class="play-cell" style="--play-color:${color}">
+              <span class="play-dot" aria-hidden="true"></span>
+              <div>
+                <strong>${escapeHtml(play.cim)}</strong>
+                <small>${escapeHtml(play.szin.toUpperCase())}</small>
+              </div>
+            </div>
+          </td>
+          <td class="muted-strong">${escapeHtml(play.rendezo)}</td>
+          <td><span class="count-pill"><i class="bi bi-clock" aria-hidden="true"></i>${play.idotartam} perc</span></td>
+          <td><span class="count-pill${linkedShows.length ? '' : ' zero'}">${linkedShows.length} előadás</span></td>
+          <td><span class="count-pill${soldTickets ? '' : ' zero'}">${soldTickets} jegy</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="icon-action" type="button" data-play-edit="${play.id}" aria-label="${escapeHtml(play.cim)} szerkesztése" title="Szerkesztés"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+              <button class="icon-action danger" type="button" data-play-delete="${play.id}" aria-label="${escapeHtml(play.cim)} törlése" title="Törlés"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderActors() {
+    if (!dom.actorGrid) return;
+    const average = state.szineszek.length
+      ? state.szineszek.reduce((sum, actor) => sum + Number(actor.ertekeles || 0), 0) / state.szineszek.length
+      : 0;
+    dom.actorsMeta.innerHTML = `<i class="bi bi-people" aria-hidden="true"></i>${state.szineszek.length} színész · ${formatRating(average)} átlag`;
+
+    const cards = state.szineszek.map((actor) => {
+      const roles = state.szereplesek.filter((role) => role.szinesz_id === actor.id);
+      const showIds = new Set(roles.map((role) => role.musor_id));
+      const playIds = new Set(Array.from(showIds).map((showId) => getShow(showId)?.szindarab_id).filter(Boolean));
+      const playNames = Array.from(playIds).map((playId) => getPlay(playId)?.cim).filter(Boolean);
+      const rating = Math.max(0, Math.min(5, Number(actor.ertekeles) || 0));
+      const ratingPercent = (rating / 5) * 100;
+      const roleMarkup = playNames.length
+        ? playNames.map((title) => `<span class="role-chip" title="${escapeHtml(title)}"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>${escapeHtml(title)}</span>`).join('')
+        : '<span class="role-chip">Nincs szerepkör</span>';
+
+      return `
+        <div class="col-12 col-sm-6 col-xl-4">
+          <article class="actor-card">
+            <div class="actor-top">
+              <div class="actor-avatar" aria-hidden="true">${escapeHtml(initials(actor.nev))}</div>
+              <span class="rating-badge"><i class="bi bi-star-fill" aria-hidden="true"></i>${formatRating(rating)}</span>
+            </div>
+            <h3 class="actor-name">${escapeHtml(actor.nev)}</h3>
+            <div class="star-row" aria-label="Értékelés: ${formatRating(rating)} az 5-ből">
+              <span class="stars" aria-hidden="true">★★★★★<span class="stars-fill" style="width:${ratingPercent}%">★★★★★</span></span>
+              <span class="rating-value">${formatRating(rating)} / 5</span>
+            </div>
+            <div class="actor-roles">${roleMarkup}</div>
+            <div class="actor-meta">${playNames.length ? `${showIds.size} előadás · ${playNames.length} produkció` : 'Még nincs hozzárendelt előadás'}</div>
+            <div class="actor-actions">
+              <button class="icon-action" type="button" data-actor-edit="${actor.id}" aria-label="${escapeHtml(actor.nev)} szerkesztése" title="Szerkesztés"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+              <button class="icon-action danger" type="button" data-actor-delete="${actor.id}" aria-label="${escapeHtml(actor.nev)} törlése" title="Törlés"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+            </div>
+          </article>
+        </div>`;
+    }).join('');
+
+    const addCard = `
+      <div class="col-12 col-sm-6 col-xl-4">
+        <button class="add-actor-card" type="button" data-add-actor>
+          <span class="plus-circle"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+          <strong>Új színész felvétele</strong>
+          <span>Bővítsd a társulat listáját</span>
+        </button>
+      </div>`;
+
+    dom.actorGrid.innerHTML = cards + addCard;
+  }
+
+  function layoutDayEvents(events) {
+    const sorted = [...events].sort((left, right) => {
+      const startDiff = getShowStart(left) - getShowStart(right);
+      if (startDiff !== 0) return startDiff;
+      return getShowDuration(right) - getShowDuration(left);
+    });
+    const groups = [];
+    let group = [];
+    let groupEnd = -Infinity;
+
+    sorted.forEach((show) => {
+      const startMinute = minutesOfDay(getShowStart(show));
+      if (group.length && startMinute >= groupEnd) {
+        groups.push(group);
+        group = [];
+        groupEnd = -Infinity;
+      }
+      group.push(show);
+      groupEnd = Math.max(groupEnd, minutesOfDay(getShowEnd(show)));
+    });
+    if (group.length) groups.push(group);
+
+    const layout = new Map();
+    groups.forEach((cluster) => {
+      const columnEnds = [];
+      const placements = [];
+      cluster.forEach((show) => {
+        const startMinute = minutesOfDay(getShowStart(show));
+        let column = columnEnds.findIndex((end) => end <= startMinute);
+        if (column === -1) {
+          column = columnEnds.length;
+          columnEnds.push(minutesOfDay(getShowEnd(show)));
+        } else {
+          columnEnds[column] = minutesOfDay(getShowEnd(show));
+        }
+        placements.push({ show, column });
+      });
+      const totalColumns = Math.max(1, columnEnds.length);
+      placements.forEach(({ show, column }) => {
+        layout.set(show.id, { column, totalColumns });
+      });
+    });
+    return layout;
+  }
+
+  function renderCalendar() {
+    if (!dom.weekCalendar) return;
+    const weekStart = startOfWeek(state.calendarWeekStart);
+    state.calendarWeekStart = weekStart;
+    const weekEnd = addDays(weekStart, 6);
+    const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+    const weekKeys = new Set(days.map((day) => localDateKey(day)));
+    const weekShows = state.musorok.filter((show) => weekKeys.has(localDateKey(getShowStart(show))));
+    dom.weekLabel.textContent = formatWeekRange(weekStart, weekEnd);
+    dom.weekSummary.innerHTML = `<i class="bi bi-calendar2-week" aria-hidden="true"></i>${pluralHu(weekShows.length, 'előadás', 'előadás')} ezen a héten`;
+    dom.showsMeta.innerHTML = `<i class="bi bi-collection-play" aria-hidden="true"></i>${state.musorok.length} előadás összesen`;
+
+    const head = days.map((day, index) => {
+      const dayShows = getShowsOnDate(day);
+      const isToday = isSameDay(day, state.simNow);
+      return `
+        <div class="cal-day-head${isToday ? ' is-today' : ''}">
+          <div class="text-center">
+            <span class="cal-day-name">${WEEKDAY_SHORT[index]}</span>
+            <div><span class="cal-day-num">${day.getDate()}</span></div>
+            <span class="cal-day-count">${dayShows.length ? pluralHu(dayShows.length, 'előadás', 'előadás') : 'szabad'}</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    const timeAxisLabels = [];
+    for (let hour = HOUR_START; hour <= HOUR_END; hour += 1) {
+      const isLast = hour === HOUR_END;
+      const position = ((hour - HOUR_START) / (HOUR_END - HOUR_START)) * 100;
+      timeAxisLabels.push(`<span class="cal-hour-label" style="top:${position}%;${isLast ? 'transform:translateY(-100%);' : ''}">${pad2(hour)}:00</span>`);
+    }
+
+    const dayColumns = days.map((day) => {
+      const dayShows = getShowsOnDate(day);
+      const layout = layoutDayEvents(dayShows);
+      const isToday = isSameDay(day, state.simNow);
+      const eventsMarkup = dayShows.map((show) => {
+        const play = getPlay(show.szindarab_id);
+        const room = getRoom(show.terem_id);
+        if (!play || !room) return '';
+        const start = getShowStart(show);
+        const end = getShowEnd(show);
+        const startMin = Math.max(DAY_START_MIN, minutesOfDay(start));
+        const endMin = Math.min(DAY_END_MIN, minutesOfDay(end));
+        if (endMin <= startMin) return '';
+        const placement = layout.get(show.id) || { column: 0, totalColumns: 1 };
+        const top = ((startMin - DAY_START_MIN) / DAY_SPAN_MIN) * 100;
+        const height = ((endMin - startMin) / DAY_SPAN_MIN) * 100;
+        const left = placement.totalColumns > 1
+          ? `calc(${(placement.column / placement.totalColumns) * 100}% + 2px)`
+          : '4px';
+        const width = placement.totalColumns > 1
+          ? `calc(${100 / placement.totalColumns}% - 4px)`
+          : 'calc(100% - 8px)';
+        const tooltip = `${play.cim} · ${room.nev} · ${formatTime(start)}–${formatTime(end)} · ${play.rendezo}`;
+        return `
+          <button class="week-event" type="button" data-show-open="${show.id}" style="top:${top}%;height:${height}%;left:${left};width:${width};${colorStyle(play.szin)}" title="${escapeHtml(tooltip)}">
+            <span class="week-event-title">${escapeHtml(play.cim)}</span>
+            <span class="week-event-meta"><span class="week-event-room">${escapeHtml(room.nev.replace('terem ', 'T'))}</span> ${formatTime(start)}</span>
+            <span class="visually-hidden">–${formatTime(end)}, rendező: ${escapeHtml(play.rendezo)}</span>
+          </button>`;
+      }).join('');
+
+      const nowMin = minutesOfDay(state.simNow);
+      const nowLine = isToday && nowMin >= DAY_START_MIN && nowMin <= DAY_END_MIN
+        ? `<span class="cal-now-line" style="top:${((nowMin - DAY_START_MIN) / DAY_SPAN_MIN) * 100}%" aria-hidden="true"></span>`
+        : '';
+
+      return `<div class="cal-day-col${isToday ? ' is-today' : ''}" aria-label="${escapeHtml(formatDateLong(day))}">${eventsMarkup}${nowLine}</div>`;
+    }).join('');
+
+    dom.weekCalendar.innerHTML = `
+      <div class="cal-head-grid">
+        <div class="cal-corner">Idő</div>
+        ${head}
+      </div>
+      <div class="week-body-grid">
+        <div class="cal-time-axis">${timeAxisLabels.join('')}</div>
+        ${dayColumns}
+      </div>`;
+  }
+
+  function renderTimeline() {
+    if (!dom.timelineArea) return;
+    const dayShows = getShowsOnDate(state.simNow);
+    dom.timelineDate.textContent = formatDateLong(state.simNow);
+    dom.timelineEventCount.textContent = dayShows.length
+      ? `${pluralHu(dayShows.length, 'előadás', 'előadás')} ezen a napon`
+      : 'Ezen a napon még nincs előadás';
+
+    const usedPlayIds = new Set(dayShows.map((show) => show.szindarab_id));
+    const legendPlays = state.szindarabok.filter((play) => usedPlayIds.has(play.id));
+    dom.timelineLegend.innerHTML = legendPlays.length
+      ? legendPlays.map((play) => `<span class="legend-item"><span class="legend-dot" style="background:${normalizeHex(play.szin)}"></span><span class="legend-name" title="${escapeHtml(play.cim)}">${escapeHtml(play.cim)}</span></span>`).join('')
+      : '<span class="legend-item">Nincs mai előadás</span>';
+
+    const hourLabels = [];
+    for (let hour = HOUR_START; hour <= HOUR_END; hour += 1) {
+      const position = ((hour - HOUR_START) / (HOUR_END - HOUR_START)) * 100;
+      hourLabels.push(`<span class="tl-hour-label" style="left:${position}%">${pad2(hour)}:00</span>`);
+    }
+
+    const simMinute = minutesOfDay(state.simNow);
+    const nowPosition = ((simMinute - DAY_START_MIN) / DAY_SPAN_MIN) * 100;
+    const showNowLine = simMinute >= DAY_START_MIN && simMinute <= DAY_END_MIN;
+
+    const rows = state.termek.map((room) => {
+      const roomShows = dayShows.filter((show) => show.terem_id === room.id);
+      const eventsMarkup = roomShows.map((show) => {
+        const play = getPlay(show.szindarab_id);
+        if (!play) return '';
+        const start = getShowStart(show);
+        const end = getShowEnd(show);
+        const startMin = Math.max(DAY_START_MIN, minutesOfDay(start));
+        const endMin = Math.min(DAY_END_MIN, minutesOfDay(end));
+        if (endMin <= startMin) return '';
+        const left = ((startMin - DAY_START_MIN) / DAY_SPAN_MIN) * 100;
+        const width = ((endMin - startMin) / DAY_SPAN_MIN) * 100;
+        const tooltip = `${play.cim} · ${formatTime(start)}–${formatTime(end)} · ${play.rendezo}`;
+        return `
+          <button class="tl-event" type="button" data-show-open="${show.id}" style="left:${left}%;width:${width}%;${colorStyle(play.szin)}" title="${escapeHtml(tooltip)}">
+            <span class="tl-event-title">${escapeHtml(play.cim)}</span>
+            <span class="tl-event-meta">${formatTime(start)}–${formatTime(end)}</span>
+          </button>`;
+      }).join('');
+
+      return `
+        <div class="tl-row tl-room-row">
+          <div class="tl-room-label"><i class="bi bi-door-open" aria-hidden="true"></i>${escapeHtml(room.nev)}</div>
+          <div class="tl-track" data-timeline-room="${room.id}" tabindex="0" role="group" aria-label="${escapeHtml(room.nev)} idősávja. Új előadás felvételéhez nyomd meg az Entert, vagy kattints egy üres területre.">
+            ${roomShows.length === 0 ? '<span class="tl-empty-hint">+ Kattints ide új előadáshoz</span>' : ''}
+            ${eventsMarkup}
+            ${showNowLine ? `<span class="tl-now" style="left:${nowPosition}%" aria-hidden="true"></span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    dom.timelineArea.innerHTML = `
+      <div class="tl-head">
+        <div class="tl-head-room">Terem</div>
+        <div class="tl-hours">${hourLabels.join('')}</div>
+      </div>
+      ${rows}`;
+  }
+
+  function updateSimulationLabels() {
+    if (!dom.simDate || !dom.simTime) return;
+    dom.simDate.value = localDateKey(state.simNow);
+    dom.simTime.value = localTimeValue(state.simNow);
+    const weekday = new Intl.DateTimeFormat('hu-HU', { weekday: 'long' }).format(state.simNow);
+    dom.simHuman.textContent = `${capitalize(weekday)} · ${formatTime(state.simNow)}`;
+    dom.sidebarDateTime.textContent = `${formatDateLong(state.simNow)} · ${formatTime(state.simNow)}`;
+  }
+
+  function renderAll() {
+    updateSimulationLabels();
+    renderRooms();
+    renderPlays();
+    renderActors();
+    renderCalendar();
+    renderTimeline();
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Feedback, navigation, simulation                                        */
+  /* ----------------------------------------------------------------------- */
+
+  function showToast(message, variant = 'dark') {
+    if (!dom.toastContainer) return;
+    const icons = {
+      dark: 'bi-info-circle',
+      success: 'bi-check-circle',
+      danger: 'bi-exclamation-octagon'
+    };
+    const element = document.createElement('div');
+    element.className = `toast app-toast text-bg-${variant}`;
+    element.setAttribute('role', 'status');
+    element.setAttribute('aria-live', 'polite');
+    element.innerHTML = `
+      <div class="toast-body">
+        <i class="bi ${icons[variant] || icons.dark}" aria-hidden="true"></i>
+        <span>${escapeHtml(message)}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast" aria-label="Bezárás"></button>
+      </div>`;
+    dom.toastContainer.appendChild(element);
+    const toast = new bootstrap.Toast(element, { delay: 3600, autohide: true });
+    element.addEventListener('hidden.bs.toast', () => element.remove());
+    toast.show();
+  }
+
+  function confirmAction({ title, body, confirmLabel = 'Törlés' }) {
+    return new Promise((resolve) => {
+      if (state.confirmResolve) state.confirmResolve(false);
+      state.confirmResolve = resolve;
+      dom.confirmTitle.textContent = title;
+      dom.confirmBody.innerHTML = body;
+      dom.confirmActionBtn.textContent = confirmLabel;
+      dom.confirmActionBtn.className = 'btn btn-accent';
+      bootstrap.Modal.getOrCreateInstance(dom.confirmModal, { backdrop: 'static' }).show();
+    });
+  }
+
+  function setView(view, updateHash = true) {
+    const safeView = VIEW_META[view] ? view : 'termek';
+    state.currentView = safeView;
+    qsa('[data-view-section]').forEach((section) => {
+      section.classList.toggle('active', section.dataset.viewSection === safeView);
+    });
+    qsa('[data-view-link]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.viewLink === safeView);
+    });
+    dom.viewChip.textContent = VIEW_META[safeView].label;
+    if (updateHash) {
+      const nextHash = `#${safeView}`;
+      if (window.location.hash !== nextHash) {
+        history.replaceState(null, '', nextHash);
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.matchMedia('(max-width: 991.98px)').matches) closeSidebar();
+  }
+
+  function isDesktopSidebar() {
+    return window.matchMedia('(min-width: 992px)').matches;
+  }
+
+  function syncSidebarButton() {
+    if (!dom.sidebarToggle) return;
+    const isOpen = isDesktopSidebar()
+      ? !document.body.classList.contains('sidebar-collapsed')
+      : document.body.classList.contains('sidebar-open');
+    dom.sidebarToggle.setAttribute('aria-expanded', String(isOpen));
+    dom.sidebarToggle.setAttribute('aria-label', isOpen ? 'Oldalsáv összecsukása' : 'Oldalsáv kinyitása');
+  }
+
+  function closeSidebar() {
+    if (isDesktopSidebar()) {
+      document.body.classList.add('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+    syncSidebarButton();
+  }
+
+  function toggleSidebar() {
+    if (isDesktopSidebar()) {
+      document.body.classList.toggle('sidebar-collapsed');
+    } else {
+      document.body.classList.toggle('sidebar-open');
+    }
+    syncSidebarButton();
+  }
+
+  function applySimulatedTime(date, options = {}) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return;
+    const previousKey = localDateKey(state.simNow);
+    state.simNow = new Date(date.getTime());
+    if (localDateKey(state.simNow) !== previousKey || options.forceWeek) {
+      state.calendarWeekStart = startOfWeek(state.simNow);
+    }
+    renderAll();
+  }
+
+  function handleSimulationChange() {
+    const parsed = combineDateAndTime(dom.simDate.value, dom.simTime.value);
+    if (!parsed) return;
+    applySimulatedTime(parsed);
+  }
+
+  function jumpToRealTime() {
+    const now = new Date();
+    applySimulatedTime(now, { forceWeek: true });
+    showToast(`A szimulált idő a valós időre állt: ${formatDateLong(now)} · ${formatTime(now)}`, 'dark');
+  }
+
+  function hideFormAlert(element) {
+    element.classList.add('d-none');
+    const span = qs('span', element);
+    if (span) span.textContent = '';
+  }
+
+  function showFormAlert(element, message) {
+    element.classList.remove('d-none');
+    const span = qs('span', element);
+    if (span) span.textContent = message;
+  }
+
+  function markInvalid(input) {
+    input.classList.add('is-invalid');
+  }
+
+  function clearInvalid(form) {
+    qsa('.is-invalid', form).forEach((input) => input.classList.remove('is-invalid'));
+    form.classList.remove('was-validated');
+  }
+
+  function closeModal(modalOrElement) {
+    const element = modalOrElement?.classList ? modalOrElement : null;
+    if (!element) return;
+    const instance = bootstrap.Modal.getInstance(element);
+    if (instance) instance.hide();
+  }
+
+  function renderColorSwatches() {
+    if (!dom.playColorSwatches) return;
+    dom.playColorSwatches.innerHTML = COLOR_PRESETS.map((color) => {
+      const label = color.replace('#', '').toUpperCase();
+      return `<button class="color-swatch" type="button" data-color-swatch="${color}" style="--swatch:${color}" aria-label="Szín: ${label}" title="${label}"></button>`;
+    }).join('');
+  }
+
+  function updatePlayPreview() {
+    const color = normalizeHex(dom.playColor.value);
+    const title = dom.playTitle.value.trim() || 'Előnézet';
+    const duration = Number(dom.playDuration.value);
+    dom.playColorPreview.style.setProperty('--preview-color', color);
+    dom.playColorPreviewTitle.textContent = title;
+    dom.playColorPreviewDuration.textContent = Number.isFinite(duration) && duration > 0 ? `${duration} perc` : '— perc';
+    qsa('[data-color-swatch]', dom.playColorSwatches).forEach((button) => {
+      const isActive = normalizeHex(button.dataset.colorSwatch) === color;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', String(isActive));
+    });
+  }
+
+  function openPlayModal(playId = null) {
+    state.editingPlayId = playId === null || playId === undefined ? null : Number(playId);
+    dom.playForm.reset();
+    clearInvalid(dom.playForm);
+    hideFormAlert(dom.playFormError);
+    const play = state.editingPlayId ? getPlay(state.editingPlayId) : null;
+    if (play) {
+      dom.playModalTitle.textContent = 'Színdarab szerkesztése';
+      dom.playSaveBtn.innerHTML = '<i class="bi bi-check-lg" aria-hidden="true"></i>Módosítások mentése';
+      dom.playTitle.value = play.cim;
+      dom.playDirector.value = play.rendezo;
+      dom.playDuration.value = String(play.idotartam);
+      dom.playColor.value = normalizeHex(play.szin);
+    } else {
+      state.editingPlayId = null;
+      dom.playModalTitle.textContent = 'Új színdarab';
+      dom.playSaveBtn.innerHTML = '<i class="bi bi-check-lg" aria-hidden="true"></i>Mentés';
+      dom.playColor.value = COLOR_PRESETS[0];
+    }
+    updatePlayPreview();
+    bootstrap.Modal.getOrCreateInstance(dom.playModal).show();
+  }
+
+  function findPlayDurationProblem(playId, newDuration) {
+    const affectedShows = state.musorok.filter((show) => show.szindarab_id === Number(playId));
+    for (const show of affectedShows) {
+      const start = getShowStart(show);
+      const newEnd = addMinutes(start, newDuration);
+      const relativeEndMinutes = (newEnd.getTime() - startOfDay(start).getTime()) / MINUTE_MS;
+      if (relativeEndMinutes > DAY_END_MIN) {
+        return {
+          type: 'closing',
+          show,
+          message: `A ${formatDateLong(start)} ${formatTime(start)}-kor kezdődő előadás az új játékidővel ${formatTime(newEnd)}-ig tartana, ami túllépi a 19:00-s zárást.`
+        };
+      }
+      const overlap = state.musorok.find((other) => {
+        if (other.id === show.id || other.terem_id !== show.terem_id) return false;
+        return start.getTime() < getShowEnd(other).getTime() && newEnd.getTime() > getShowStart(other).getTime();
+      });
+      if (overlap) {
+        const otherPlay = getPlay(overlap.szindarab_id);
+        return {
+          type: 'overlap',
+          show,
+          message: `A ${formatDateLong(start)} ${formatTime(start)}-kor kezdődő előadás az új játékidővel ütközne a következő előadással: ${otherPlay?.cim || 'másik előadás'} (${formatTime(getShowStart(overlap))}).`
+        };
+      }
+    }
+    return null;
+  }
+
+  function handlePlaySubmit(event) {
+    event.preventDefault();
+    clearInvalid(dom.playForm);
+    hideFormAlert(dom.playFormError);
+
+    const title = dom.playTitle.value.trim();
+    const director = dom.playDirector.value.trim();
+    const duration = Number(dom.playDuration.value);
+    const color = normalizeHex(dom.playColor.value);
+    let hasError = false;
+
+    if (!title) {
+      markInvalid(dom.playTitle);
+      hasError = true;
+    }
+    if (!director) {
+      markInvalid(dom.playDirector);
+      hasError = true;
+    }
+    if (!Number.isFinite(duration) || duration < 15 || duration > 300) {
+      markInvalid(dom.playDuration);
+      hasError = true;
+    }
+    if (hasError) {
+      dom.playForm.classList.add('was-validated');
+      showFormAlert(dom.playFormError, 'Kérlek töltsd ki helyesen a kötelező mezőket.');
+      return;
+    }
+
+    if (state.editingPlayId) {
+      const play = getPlay(state.editingPlayId);
+      if (!play) return;
+      const problem = findPlayDurationProblem(play.id, duration);
+      if (problem) {
+        markInvalid(dom.playDuration);
+        showFormAlert(dom.playFormError, problem.message);
+        dom.playForm.classList.add('was-validated');
+        return;
+      }
+      play.cim = title;
+      play.rendezo = director;
+      play.idotartam = duration;
+      play.szin = color;
+      showToast(`„${title}” adatai frissítve.`, 'success');
+    } else {
+      state.szindarabok.push({
+        id: nextId(state.szindarabok),
+        cim: title,
+        rendezo: director,
+        idotartam: duration,
+        szin: color
+      });
+      showToast(`„${title}” felkerült a repertoárra.`, 'success');
+    }
+
+    closeModal(dom.playModal);
+    renderAll();
+  }
+
+  function openActorModal(actorId = null) {
+    state.editingActorId = actorId === null || actorId === undefined ? null : Number(actorId);
+    dom.actorForm.reset();
+    clearInvalid(dom.actorForm);
+    hideFormAlert(dom.actorFormError);
+    const actor = state.editingActorId ? getActor(state.editingActorId) : null;
+    if (actor) {
+      dom.actorModalTitle.textContent = 'Színész szerkesztése';
+      dom.actorSaveBtn.innerHTML = '<i class="bi bi-check-lg" aria-hidden="true"></i>Módosítások mentése';
+      dom.actorName.value = actor.nev;
+      dom.actorRating.value = String(actor.ertekeles);
+    } else {
+      state.editingActorId = null;
+      dom.actorModalTitle.textContent = 'Új színész';
+      dom.actorSaveBtn.innerHTML = '<i class="bi bi-check-lg" aria-hidden="true"></i>Mentés';
+      dom.actorRating.value = '4.5';
+    }
+    bootstrap.Modal.getOrCreateInstance(dom.actorModal).show();
+  }
+
+  function handleActorSubmit(event) {
+    event.preventDefault();
+    clearInvalid(dom.actorForm);
+    hideFormAlert(dom.actorFormError);
+
+    const name = dom.actorName.value.trim();
+    const rawRating = String(dom.actorRating.value).trim();
+    const rating = rawRating === '' ? NaN : Number(rawRating.replace(',', '.'));
+    let hasError = false;
+
+    if (!name) {
+      markInvalid(dom.actorName);
+      hasError = true;
+    }
+    if (!Number.isFinite(rating) || rating < 0 || rating > 5) {
+      markInvalid(dom.actorRating);
+      hasError = true;
+    }
+    if (hasError) {
+      dom.actorForm.classList.add('was-validated');
+      showFormAlert(dom.actorFormError, 'Adj meg egy nevet és 0 és 5 közötti értékelést.');
+      return;
+    }
+
+    if (state.editingActorId) {
+      const actor = getActor(state.editingActorId);
+      if (!actor) return;
+      actor.nev = name;
+      actor.ertekeles = Math.round(rating * 10) / 10;
+      showToast(`„${name}” adatai frissítve.`, 'success');
+    } else {
+      state.szineszek.push({
+        id: nextId(state.szineszek),
+        nev: name,
+        ertekeles: Math.round(rating * 10) / 10
+      });
+      showToast(`„${name}” felkerült a társulatlistára.`, 'success');
+    }
+
+    closeModal(dom.actorModal);
+    renderAll();
+  }
+
+  async function requestDeletePlay(playId) {
+    const play = getPlay(playId);
+    if (!play) return;
+    const linkedShows = state.musorok.filter((show) => show.szindarab_id === play.id);
+    const showIds = new Set(linkedShows.map((show) => show.id));
+    const soldTickets = state.jegyek.filter((ticket) => showIds.has(ticket.musor_id)).length;
+    const extra = linkedShows.length
+      ? `<br><br>A darabhoz <strong>${linkedShows.length} előadás</strong>${soldTickets ? ` és <strong>${soldTickets} megvásárolt jegy</strong>` : ''} kapcsolódik. Ezek is törlődni fognak, és a műsorrendből eltűnnek.`
+      : '';
+    const confirmed = await confirmAction({
+      title: 'Színdarab törlése',
+      body: `Biztosan törlöd a repertoárból ezt a darabot: <strong>${escapeHtml(play.cim)}</strong>? ${extra}`,
+      confirmLabel: 'Színdarab törlése'
+    });
+    if (!confirmed) return;
+    state.szindarabok = state.szindarabok.filter((item) => item.id !== play.id);
+    state.musorok = state.musorok.filter((show) => !showIds.has(show.id));
+    state.jegyek = state.jegyek.filter((ticket) => !showIds.has(ticket.musor_id));
+    state.szereplesek = state.szereplesek.filter((role) => !showIds.has(role.musor_id));
+    renderAll();
+    showToast(`„${play.cim}” törölve.`, 'success');
+  }
+
+  async function requestDeleteActor(actorId) {
+    const actor = getActor(actorId);
+    if (!actor) return;
+    const roleCount = state.szereplesek.filter((role) => role.szinesz_id === actor.id).length;
+    const confirmed = await confirmAction({
+      title: 'Színész törlése',
+      body: `Biztosan törlöd <strong>${escapeHtml(actor.nev)}</strong> kártyáját a társulatból? ${roleCount ? `<br><br>A színészhez <strong>${roleCount} szerepkör</strong> kapcsolódik; ezek a hozzárendelések is törlődnek.` : ''}`,
+      confirmLabel: 'Színész törlése'
+    });
+    if (!confirmed) return;
+    state.szineszek = state.szineszek.filter((item) => item.id !== actor.id);
+    state.szereplesek = state.szereplesek.filter((role) => role.szinesz_id !== actor.id);
+    renderAll();
+    showToast(`„${actor.nev}” törölve a társulatból.`, 'success');
+  }
+
+  function populateShowPlayOptions() {
+    dom.showPlay.innerHTML = state.szindarabok
+      .map((play) => `<option value="${play.id}">${escapeHtml(play.cim)} · ${play.idotartam} perc</option>`)
+      .join('');
+  }
+
+  function getSelectedCastIds() {
+    if (!dom.showCastPicker) return [];
+    return Array.from(dom.showCastPicker.querySelectorAll('input[data-cast-actor]:checked'))
+      .map((input) => Number(input.value))
+      .filter((id) => Number.isFinite(id));
+  }
+
+  function updateShowCastCount() {
+    if (!dom.showCastCount) return;
+    const count = getSelectedCastIds().length;
+    dom.showCastCount.textContent = count ? `${count} színész kiválasztva` : 'Nincs kiválasztva';
+    if (dom.showCastPicker) {
+      dom.showCastPicker.querySelectorAll('.cast-option').forEach((option) => {
+        option.classList.toggle('is-selected', Boolean(option.querySelector('input[data-cast-actor]')?.checked));
+      });
+    }
+  }
+
+  function renderShowCastPicker(selectedIds = []) {
+    if (!dom.showCastPicker) return;
+    const selected = new Set(selectedIds.map(Number));
+    if (!state.szineszek.length) {
+      dom.showCastPicker.innerHTML = '<div class="cast-picker-empty">Még nincs színész a társulatban. Előbb vegyél fel színészeket.</div>';
+      updateShowCastCount();
+      return;
+    }
+    dom.showCastPicker.innerHTML = state.szineszek.map((actor) => {
+      const checked = selected.has(actor.id);
+      return `
+        <label class="cast-option${checked ? ' is-selected' : ''}">
+          <input class="form-check-input" type="checkbox" value="${actor.id}" data-cast-actor${checked ? ' checked' : ''}>
+          <span class="cast-option-body">
+            <span class="cast-option-name">${escapeHtml(actor.nev)}</span>
+            <span class="cast-option-meta"><i class="bi bi-star-fill" aria-hidden="true"></i>${formatRating(actor.ertekeles)} / 5</span>
+          </span>
+        </label>`;
+    }).join('');
+    updateShowCastCount();
+  }
+
+  function getShowCastIds(showId) {
+    return Array.from(new Set(
+      state.szereplesek
+        .filter((role) => role.musor_id === Number(showId))
+        .map((role) => role.szinesz_id)
+    ));
+  }
+
+  function roundedStartValue() {
+    const current = minutesOfDay(state.simNow);
+    if (current < DAY_START_MIN || current >= DAY_END_MIN) return '10:00';
+    const rounded = Math.min(DAY_END_MIN - 15, Math.ceil(current / 15) * 15);
+    return `${pad2(Math.floor(rounded / 60))}:${pad2(rounded % 60)}`;
+  }
+
+  function getShowFormModel() {
+    const play = getPlay(Number(dom.showPlay.value));
+    const room = getRoom(Number(dom.showRoom.value));
+    const dateKey = dom.showDate.value;
+    const startValue = dom.showStart.value;
+    const start = combineDateAndTime(dateKey, startValue);
+    const duration = Number(play?.idotartam) || 0;
+    const end = start ? addMinutes(start, duration) : null;
+    const startMinute = start ? minutesOfDay(start) : null;
+    const endMinute = end ? minutesOfDay(end) : null;
+    const sameDayEnd = start && end ? isSameDay(start, end) : false;
+    const inWindow = Boolean(start) && startMinute >= DAY_START_MIN && startMinute <= DAY_END_MIN;
+    const fitsClosing = Boolean(end) && sameDayEnd && endMinute <= DAY_END_MIN;
+    let conflict = null;
+    if (start && duration > 0) {
+      conflict = findConflict(room?.id, start, duration, state.editingShowId);
+    }
+    return {
+      play,
+      room,
+      start,
+      end,
+      duration,
+      startMinute,
+      endMinute,
+      inWindow,
+      fitsClosing,
+      conflict,
+      dateKey,
+      startValue
+    };
+  }
+
+  function refreshShowForm(options = {}) {
+    hideFormAlert(dom.showFormError);
+    const requestedRoomId = options.preferredRoomId !== undefined
+      ? Number(options.preferredRoomId) || null
+      : (dom.showRoom.value ? Number(dom.showRoom.value) : null);
+    const model = getShowFormModel();
+
+    dom.showPlayHint.textContent = model.play
+      ? `Játékidő: ${model.duration} perc${model.start ? ` · ${formatTime(model.start)}–${formatTime(model.end)}` : ''}`
+      : 'Válassz színdarabot.';
+    dom.showDurationBadge.textContent = model.play ? `${model.duration} perc` : '—';
+    dom.showEndTime.textContent = model.start && model.play ? formatTime(model.end) : '—';
+
+    const baseInvalid = !model.play || !model.start || !model.inWindow || !model.fitsClosing;
+    let closeMessage = '';
+    if (model.start && model.startMinute < DAY_START_MIN) {
+      closeMessage = 'A kezdés nem lehet 10:00 előtt.';
+    } else if (model.start && model.end && !model.fitsClosing) {
+      closeMessage = `Az előadás ${formatTime(model.end)}-ig tartana, ami túllépi a 19:00-s zárást. Válassz korábbi kezdést vagy rövidebb darabot.`;
+    }
+
+    const roomConflicts = new Map();
+    state.termek.forEach((room) => {
+      if (!model.start || !model.play || !model.inWindow || !model.fitsClosing) {
+        roomConflicts.set(room.id, null);
+      } else {
+        roomConflicts.set(room.id, findConflict(room.id, model.start, model.duration, state.editingShowId));
+      }
+    });
+
+    const allBlocked = model.start && model.play && model.inWindow && model.fitsClosing
+      && Array.from(roomConflicts.values()).every(Boolean);
+
+    const previousRoomId = requestedRoomId;
+    dom.showRoom.innerHTML = '<option value="">Válassz termet…</option>' + state.termek.map((room) => {
+      const conflict = roomConflicts.get(room.id);
+      const blocked = Boolean(conflict) || Boolean(closeMessage) || allBlocked;
+      const suffix = blocked ? ' · foglalt' : '';
+      return `<option value="${room.id}"${blocked ? ' disabled' : ''}>${escapeHtml(room.nev)}${suffix}</option>`;
+    }).join('');
+
+    let selectedRoom = null;
+    if (previousRoomId) {
+      const conflict = roomConflicts.get(previousRoomId);
+      if (!conflict && !closeMessage && !allBlocked) {
+        selectedRoom = previousRoomId;
+      }
+    }
+    dom.showRoom.value = selectedRoom ? String(selectedRoom) : '';
+
+    const roomAvailability = state.termek.map((room) => {
+      const conflict = roomConflicts.get(room.id);
+      if (!model.start || !model.play || !model.inWindow || !model.fitsClosing) {
+        return `<div class="room-status-line"><strong>${escapeHtml(room.nev)}</strong><span class="availability-badge busy">nem ellenőrizhető</span></div>`;
+      }
+      if (conflict) {
+        const otherPlay = getPlay(conflict.szindarab_id);
+        return `<div class="room-status-line"><strong>${escapeHtml(room.nev)}</strong><span>${escapeHtml(otherPlay?.cim || 'foglalt')} · ${formatTime(getShowStart(conflict))}–${formatTime(getShowEnd(conflict))}</span><span class="availability-badge busy">foglalt</span></div>`;
+      }
+      return `<div class="room-status-line"><strong>${escapeHtml(room.nev)}</strong><span>szabad idősáv</span><span class="availability-badge free">szabad</span></div>`;
+    }).join('');
+    dom.showRoomAvailability.innerHTML = roomAvailability;
+
+    let conflictMessage = '';
+    let roomHint = '';
+    let hintClass = 'form-hint';
+    if (closeMessage) {
+      conflictMessage = closeMessage;
+    } else if (!model.start) {
+      roomHint = 'Add meg a kezdés időpontját.';
+    } else if (!model.play) {
+      roomHint = 'Válassz színdarabot.';
+    } else if (selectedRoom) {
+      const room = getRoom(selectedRoom);
+      roomHint = `A ${roomName(room)} szabad ebben az idősávban.`;
+      hintClass += ' is-ok';
+    } else if (allBlocked) {
+      conflictMessage = 'Ebben az idősávban mindhárom terem foglalt. Válassz másik kezdést vagy darabot.';
+    } else if (previousRoomId && roomConflicts.get(previousRoomId)) {
+      const room = getRoom(previousRoomId);
+      const conflict = roomConflicts.get(previousRoomId);
+      const otherPlay = getPlay(conflict.szindarab_id);
+      conflictMessage = `A ${roomName(room)} a kiválasztott idősávban foglalt (${otherPlay?.cim || 'másik előadás'}, ${formatTime(getShowStart(conflict))}–${formatTime(getShowEnd(conflict))}), ezért nem választható.`;
+      roomHint = 'Válassz másik termet.';
+      hintClass += ' is-error';
+    } else {
+      roomHint = 'Válassz szabad termet a listából.';
+    }
+
+    dom.showRoomHint.className = hintClass;
+    dom.showRoomHint.textContent = roomHint;
+
+    if (conflictMessage) {
+      dom.showConflictNote.classList.add('is-visible');
+      dom.showConflictNote.querySelector('span').textContent = conflictMessage;
+    } else {
+      dom.showConflictNote.classList.remove('is-visible');
+      dom.showConflictNote.querySelector('span').textContent = '';
+    }
+
+    const selectedConflict = selectedRoom && model.start && model.play
+      ? findConflict(selectedRoom, model.start, model.duration, state.editingShowId)
+      : null;
+    const canSave = Boolean(model.play && selectedRoom && !selectedConflict && model.start && model.inWindow && model.fitsClosing && !closeMessage);
+    dom.showSaveBtn.disabled = !canSave;
+    return { ...model, selectedRoom, canSave, closeMessage, selectedConflict };
+  }
+
+  function openShowModal(preset = {}) {
+    if (!state.szindarabok.length) {
+      showToast('Előbb vegyél fel legalább egy színdarabot a repertoárba.', 'danger');
+      return;
+    }
+    const editingShow = preset.editShowId ? getShow(preset.editShowId) : null;
+    state.editingShowId = editingShow ? editingShow.id : null;
+
+    dom.showForm.reset();
+    clearInvalid(dom.showForm);
+    hideFormAlert(dom.showFormError);
+    populateShowPlayOptions();
+
+    if (editingShow) {
+      const showStart = getShowStart(editingShow);
+      dom.showModalTitle.textContent = 'Előadás szerkesztése';
+      dom.showModalSubtitle.textContent = 'Módosítsd az időpontot, a termet vagy a szereplőket. Az ütközéseket mentés előtt ellenőrizzük.';
+      dom.showSaveBtn.innerHTML = '<i class="bi bi-check2-circle" aria-hidden="true"></i>Módosítások mentése';
+      dom.showDate.value = localDateKey(showStart);
+      dom.showStart.value = formatTime(showStart);
+      dom.showPlay.value = String(editingShow.szindarab_id);
+      renderShowCastPicker(getShowCastIds(editingShow.id));
+      refreshShowForm({ preferredRoomId: editingShow.terem_id });
+    } else {
+      const date = preset.date instanceof Date ? preset.date : state.simNow;
+      const presetRoom = preset.roomId ? Number(preset.roomId) : null;
+      dom.showModalTitle.textContent = 'Új előadás felvétele';
+      dom.showModalSubtitle.textContent = 'A rendszer foglaltság alapján kizárja az ütköző termeket.';
+      dom.showSaveBtn.innerHTML = '<i class="bi bi-calendar-plus" aria-hidden="true"></i>Előadás mentése';
+      dom.showDate.value = localDateKey(date);
+      dom.showStart.value = preset.startTime || roundedStartValue();
+      if (preset.playId && getPlay(preset.playId)) {
+        dom.showPlay.value = String(preset.playId);
+      } else if (state.szindarabok.length) {
+        dom.showPlay.value = String(state.szindarabok[0].id);
+      }
+      renderShowCastPicker([]);
+      refreshShowForm({ preferredRoomId: presetRoom });
+    }
+    bootstrap.Modal.getOrCreateInstance(dom.showModal).show();
+  }
+
+  function handleShowSubmit(event) {
+    event.preventDefault();
+    hideFormAlert(dom.showFormError);
+    const model = getShowFormModel();
+    const roomId = dom.showRoom.value ? Number(dom.showRoom.value) : null;
+    const editingShow = state.editingShowId ? getShow(state.editingShowId) : null;
+
+    if (!model.play) {
+      showFormAlert(dom.showFormError, 'Válassz színdarabot az előadáshoz.');
+      return;
+    }
+    if (!model.start || !model.inWindow) {
+      showFormAlert(dom.showFormError, 'A kezdésnek 10:00 és 19:00 között kell lennie.');
+      return;
+    }
+    if (!model.fitsClosing) {
+      showFormAlert(dom.showFormError, `Az előadás ${formatTime(model.end)}-ig tartana, ami túllépi a 19:00-s zárást.`);
+      return;
+    }
+    if (!roomId) {
+      showFormAlert(dom.showFormError, 'Válassz termet az előadáshoz.');
+      return;
+    }
+    const conflict = findConflict(roomId, model.start, model.duration, editingShow?.id);
+    if (conflict) {
+      const conflictPlay = getPlay(conflict.szindarab_id);
+      const conflictMessage = `A ${roomName(getRoom(roomId))} ebben az idősávban már foglalt: ${conflictPlay?.cim || 'másik előadás'} (${formatTime(getShowStart(conflict))}–${formatTime(getShowEnd(conflict))}). Válassz másik termet vagy kezdést.`;
+      refreshShowForm({ preferredRoomId: roomId });
+      showFormAlert(dom.showFormError, conflictMessage);
+      return;
+    }
+
+    const castIds = getSelectedCastIds();
+    const room = getRoom(roomId);
+    const locationLabel = `${roomName(room)}, ${formatDateLong(model.start)} ${formatTime(model.start)}`;
+
+    if (editingShow) {
+      const previousRoomId = editingShow.terem_id;
+      editingShow.terem_id = roomId;
+      editingShow.szindarab_id = model.play.id;
+      editingShow.kezdes_iso = model.start.toISOString();
+      state.szereplesek = state.szereplesek.filter((role) => role.musor_id !== editingShow.id);
+      castIds.forEach((actorId) => {
+        state.szereplesek.push({ szinesz_id: actorId, musor_id: editingShow.id });
+      });
+
+      let removedTickets = 0;
+      if (previousRoomId !== roomId && room) {
+        const before = state.jegyek.length;
+        state.jegyek = state.jegyek.filter((ticket) =>
+          ticket.musor_id !== editingShow.id || (ticket.sor <= room.sorok_szama && ticket.szek <= room.szekek_szama)
+        );
+        removedTickets = before - state.jegyek.length;
+      }
+
+      closeModal(dom.showModal);
+      state.editingShowId = null;
+      renderAll();
+      const castNote = castIds.length ? ` · ${castIds.length} szereplő` : '';
+      const ticketNote = removedTickets ? ` ${removedTickets} jegy törlődött, mert nem fért bele az új terembe.` : '';
+      showToast(`„${model.play.cim}” módosítva: ${locationLabel}${castNote}.${ticketNote}`, removedTickets ? 'danger' : 'success');
+      return;
+    }
+
+    const newShow = {
+      id: nextId(state.musorok),
+      terem_id: roomId,
+      szindarab_id: model.play.id,
+      kezdes_iso: model.start.toISOString()
+    };
+    state.musorok.push(newShow);
+    castIds.forEach((actorId) => {
+      state.szereplesek.push({ szinesz_id: actorId, musor_id: newShow.id });
+    });
+
+    closeModal(dom.showModal);
+    state.editingShowId = null;
+    renderAll();
+    const castNote = castIds.length ? ` · ${castIds.length} szereplő` : '';
+    showToast(`„${model.play.cim}” felvéve: ${locationLabel}${castNote}.`, 'success');
+  }
+
+  function seatRowsMarkup(room, tickets) {
+    const soldKeys = new Set(tickets.map((ticket) => `${ticket.sor}:${ticket.szek}`));
+    const groups = splitSeatGroups(room.szekek_szama);
+    const rows = [];
+    for (let row = 1; row <= room.sorok_szama; row += 1) {
+      let seatNumber = 1;
+      const groupsMarkup = groups.map((groupSize) => {
+        const seats = [];
+        for (let index = 0; index < groupSize; index += 1) {
+          const currentSeat = seatNumber;
+          const isSold = soldKeys.has(`${row}:${currentSeat}`);
+          const label = `${row}. sor, ${currentSeat}. szék`;
+          seats.push(`
+            <button class="seat${isSold ? ' is-sold' : ''}" type="button" data-seat-row="${row}" data-seat-number="${currentSeat}" aria-label="${label} – ${isSold ? 'megvásárolt. Kattints a visszaváltáshoz.' : 'szabad. Kattints a jegy eladásához.'}" title="${label} · ${isSold ? 'megvásárolt' : 'szabad'}">
+              ${currentSeat}
+            </button>`);
+          seatNumber += 1;
+        }
+        return seats.join('');
+      });
+      rows.push(`
+        <div class="seat-row">
+          <span class="seat-row-label" aria-hidden="true">${row}.</span>
+          ${groupsMarkup.join('<span class="seat-divider" aria-hidden="true"></span>')}
+          <span class="seat-row-label right" aria-hidden="true">${row}.</span>
+        </div>`);
+    }
+    return rows.join('');
+  }
+
+  function renderSeatModal() {
+    const show = getShow(state.activeSeatShowId);
+    if (!show) {
+      closeModal(dom.seatModal);
+      return;
+    }
+    const play = getPlay(show.szindarab_id);
+    const room = getRoom(show.terem_id);
+    if (!play || !room) return;
+    const start = getShowStart(show);
+    const end = getShowEnd(show);
+    const tickets = getShowTickets(show.id);
+    const allSeats = room.sorok_szama * room.szekek_szama;
+    const sold = tickets.length;
+    const free = allSeats - sold;
+    const percent = allSeats ? Math.round((sold / allSeats) * 100) : 0;
+    const accent = normalizeHex(play.szin);
+    const isLive = state.simNow >= start && state.simNow < end;
+
+    dom.seatModalHeader.style.setProperty('--seat-accent', accent);
+    dom.seatModalHeader.innerHTML = `
+      <div>
+        <span class="modal-kicker">${escapeHtml(formatDateLong(start))} · ${formatTime(start)}</span>
+        <div class="seat-modal-title-row">
+          <h2 class="modal-title" id="seatModalTitle">${escapeHtml(play.cim)}</h2>
+          ${isLive ? '<span class="room-type-badge live">Most fut</span>' : ''}
+        </div>
+        <div class="seat-modal-badges">
+          <span class="seat-modal-badge"><i class="bi bi-door-open" aria-hidden="true"></i>${escapeHtml(room.nev)} · ${escapeHtml(roomTypeName(room))}</span>
+          <span class="seat-modal-badge"><i class="bi bi-clock" aria-hidden="true"></i>${formatTimeRange(start, end)} · ${play.idotartam} perc</span>
+          <span class="seat-modal-badge"><i class="bi bi-person-badge" aria-hidden="true"></i>${escapeHtml(play.rendezo)}</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Bezárás"><i class="bi bi-x-lg" aria-hidden="true"></i></button>`;
+
+    dom.seatModalBody.innerHTML = `
+      <div class="stage-wrap seat-stage-wrap">
+        ${stageSvgTemplate()}
+        <span class="stage-label">SZÍNPAD</span>
+      </div>
+      <div class="seat-event-summary">
+        <p><strong>${escapeHtml(play.cim)}</strong> · ${escapeHtml(room.nev)} · ${formatDateLong(start)}</p>
+        <span class="count-pill"><i class="bi bi-clock" aria-hidden="true"></i>${formatTimeRange(start, end)}</span>
+      </div>
+      <div class="seat-stats">
+        <div class="seat-stat"><span>Összes hely</span><strong>${allSeats}</strong></div>
+        <div class="seat-stat"><span>Megvásárolt</span><strong>${sold}</strong></div>
+        <div class="seat-stat"><span>Szabad</span><strong>${free}</strong></div>
+        <div class="seat-stat seat-progress-box">
+          <div class="seat-progress-head"><span>Kihasználtság</span><strong>${percent}%</strong></div>
+          <div class="seat-progress" role="progressbar" aria-label="Kihasználtság" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width:${percent}%;background:${accent}"></div>
+          </div>
+        </div>
+      </div>
+      <div class="seat-toolbar">
+        <div class="seat-legend">
+          <span class="seat-legend-item"><span class="seat-swatch sold"></span>Megvásárolt jegy</span>
+          <span class="seat-legend-item"><span class="seat-swatch free"></span>Szabad hely</span>
+        </div>
+        <span class="seat-hint">Kattints egy székre a jegy állapotának módosításához.</span>
+      </div>
+      <div class="seat-scroll">
+        <div class="seat-layout" aria-label="${escapeHtml(room.nev)} jegytérképe">
+          ${seatRowsMarkup(room, tickets)}
+          <div class="seat-aisle-label">SZÍNPAD IRÁNYA</div>
+        </div>
+      </div>`;
+
+    dom.deleteShowBtn.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i>Előadás törlése';
+  }
+
+  function openSeatMap(showId) {
+    const show = getShow(showId);
+    if (!show) {
+      showToast('Az előadás nem található.', 'danger');
+      return;
+    }
+    state.activeSeatShowId = show.id;
+    renderSeatModal();
+    bootstrap.Modal.getOrCreateInstance(dom.seatModal).show();
+  }
+
+  function openShowEditFromSeat() {
+    const show = getShow(state.activeSeatShowId);
+    if (!show) return;
+    const showId = show.id;
+    const seatInstance = bootstrap.Modal.getInstance(dom.seatModal);
+    if (seatInstance && dom.seatModal.classList.contains('show')) {
+      dom.seatModal.addEventListener('hidden.bs.modal', () => {
+        openShowModal({ editShowId: showId });
+      }, { once: true });
+      seatInstance.hide();
+    } else {
+      openShowModal({ editShowId: showId });
+    }
+  }
+
+  function toggleSeat(row, seatNumber) {
+    const show = getShow(state.activeSeatShowId);
+    if (!show) return;
+    const index = state.jegyek.findIndex((ticket) =>
+      ticket.musor_id === show.id && ticket.sor === Number(row) && ticket.szek === Number(seatNumber)
+    );
+    const seatLabel = `${row}. sor, ${seatNumber}. szék`;
+    if (index >= 0) {
+      state.jegyek.splice(index, 1);
+      showToast(`${seatLabel} visszaváltva.`, 'dark');
+    } else {
+      state.jegyek.push({
+        id: nextId(state.jegyek),
+        musor_id: show.id,
+        sor: Number(row),
+        szek: Number(seatNumber),
+        statusz: 'megvasarolt'
+      });
+      showToast(`${seatLabel} eladva.`, 'success');
+    }
+    renderSeatModal();
+    renderRooms();
+    renderPlays();
+  }
+
+  async function requestDeleteShow(showId) {
+    const show = getShow(showId);
+    if (!show) return;
+    const play = getPlay(show.szindarab_id);
+    const room = getRoom(show.terem_id);
+    const start = getShowStart(show);
+    const tickets = getShowTickets(show.id);
+    const confirmed = await confirmAction({
+      title: 'Előadás törlése',
+      body: `Biztosan törlöd ezt az előadást: <strong>${escapeHtml(play?.cim || 'előadás')}</strong> (${escapeHtml(room?.nev || 'terem')}, ${escapeHtml(formatDateLong(start))} ${formatTime(start)})? ${tickets.length ? `<br><br>A műsorhoz <strong>${tickets.length} megvásárolt jegy</strong> tartozik; ezek is törlődnek.` : ''}`,
+      confirmLabel: 'Előadás törlése'
+    });
+    if (!confirmed) return;
+    state.musorok = state.musorok.filter((item) => item.id !== show.id);
+    state.jegyek = state.jegyek.filter((ticket) => ticket.musor_id !== show.id);
+    state.szereplesek = state.szereplesek.filter((role) => role.musor_id !== show.id);
+    if (state.activeSeatShowId === show.id) state.activeSeatShowId = null;
+    closeModal(dom.seatModal);
+    renderAll();
+    showToast('Az előadás törölve a műsorrendből.', 'success');
+  }
+
+  function renderRoomInfo(roomId) {
+    const room = getRoom(roomId);
+    if (!room) return;
+    state.roomInfoId = room.id;
+    dom.roomInfoTitle.textContent = room.nev;
+    const upcoming = state.musorok
+      .filter((show) => show.terem_id === room.id && getShowEnd(show) >= state.simNow)
+      .sort((left, right) => getShowStart(left) - getShowStart(right))
+      .slice(0, 6);
+    const capacity = room.sorok_szama * room.szekek_szama;
+
+    const upcomingMarkup = upcoming.length
+      ? upcoming.map((show) => {
+        const play = getPlay(show.szindarab_id);
+        const start = getShowStart(show);
+        const end = getShowEnd(show);
+        const dayLabel = isSameDay(start, state.simNow) ? 'ma' : formatDateShort(start);
+        return `
+          <button class="room-schedule-item" type="button" data-show-open="${show.id}" aria-label="${escapeHtml(play?.cim || 'előadás')} jegytérképének megnyitása">
+            <span class="room-schedule-color" style="--schedule-color:${normalizeHex(play?.szin || '#c8102e')}"></span>
+            <span class="room-schedule-main">
+              <strong>${escapeHtml(play?.cim || 'Előadás')}</strong>
+              <span>${escapeHtml(dayLabel)} · ${formatTimeRange(start, end)}</span>
+            </span>
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </button>`;
+      }).join('')
+      : '<div class="empty-room-state"><i class="bi bi-calendar-x" aria-hidden="true"></i>Nincs közelgő előadás ebben a teremben.<br>Vegyél fel egyet az idősávból.</div>';
+
+    dom.roomInfoBody.innerHTML = `
+      <div class="room-info-hero">
+        <div class="room-info-icon"><i class="bi bi-door-open" aria-hidden="true"></i></div>
+        <div>
+          <h4>${escapeHtml(room.nev)} · ${escapeHtml(roomTypeName(room))}</h4>
+          <p>${room.sorok_szama} sor × ${room.szekek_szama} szék · ${capacity} férőhely</p>
+        </div>
+      </div>
+      <div class="show-end-label mt-3">Közelgő előadások</div>
+      <div class="room-schedule-list">${upcomingMarkup}</div>`;
+  }
+
+  function openRoomInfo(roomId) {
+    renderRoomInfo(roomId);
+    bootstrap.Modal.getOrCreateInstance(dom.roomInfoModal).show();
+  }
+
+  function handleRoomCard(roomId) {
+    const current = getCurrentShowForRoom(roomId);
+    if (current) {
+      openSeatMap(current.id);
+    } else {
+      openRoomInfo(roomId);
+    }
+  }
+
+  function cacheDom() {
+    Object.assign(dom, {
+      sidebar: qs('#sidebar'),
+      sidebarClose: qs('#sidebarClose'),
+      sidebarBackdrop: qs('#sidebarBackdrop'),
+      sidebarToggle: qs('#sidebarToggle'),
+      sidebarDateTime: qs('#sidebarDateTime'),
+      viewChip: qs('#viewChip'),
+      simDate: qs('#simDate'),
+      simTime: qs('#simTime'),
+      simNowBtn: qs('#simNowBtn'),
+      simHuman: qs('#simHuman'),
+      roomCards: qs('#roomCards'),
+      roomsNowLabel: qs('#roomsNowLabel'),
+      playsMeta: qs('#playsMeta'),
+      playsCountPill: qs('#playsCountPill'),
+      playsTableCaption: qs('#playsTableCaption'),
+      playsTableBody: qs('#playsTableBody'),
+      addPlayBtn: qs('#addPlayBtn'),
+      actorsMeta: qs('#actorsMeta'),
+      actorGrid: qs('#actorGrid'),
+      addActorBtn: qs('#addActorBtn'),
+      showsMeta: qs('#showsMeta'),
+      weekLabel: qs('#weekLabel'),
+      weekSummary: qs('#weekSummary'),
+      weekCalendar: qs('#weekCalendar'),
+      weekPrev: qs('#weekPrev'),
+      weekNext: qs('#weekNext'),
+      weekToday: qs('#weekToday'),
+      addShowBtn: qs('#addShowBtn'),
+      timelineArea: qs('#timelineArea'),
+      timelineDate: qs('#timelineDate'),
+      timelineLegend: qs('#timelineLegend'),
+      timelineEventCount: qs('#timelineEventCount'),
+      timelineAddBtn: qs('#timelineAddBtn'),
+      playModal: qs('#playModal'),
+      playForm: qs('#playForm'),
+      playFormError: qs('#playFormError'),
+      playModalTitle: qs('#playModalTitle'),
+      playTitle: qs('#playTitle'),
+      playDirector: qs('#playDirector'),
+      playDuration: qs('#playDuration'),
+      playColor: qs('#playColor'),
+      playColorSwatches: qs('#playColorSwatches'),
+      playColorPreview: qs('#playColorPreview'),
+      playColorPreviewTitle: qs('#playColorPreviewTitle'),
+      playColorPreviewDuration: qs('#playColorPreviewDuration'),
+      playSaveBtn: qs('#playSaveBtn'),
+      actorModal: qs('#actorModal'),
+      actorForm: qs('#actorForm'),
+      actorFormError: qs('#actorFormError'),
+      actorModalTitle: qs('#actorModalTitle'),
+      actorName: qs('#actorName'),
+      actorRating: qs('#actorRating'),
+      actorSaveBtn: qs('#actorSaveBtn'),
+      showModal: qs('#showModal'),
+      showForm: qs('#showForm'),
+      showFormError: qs('#showFormError'),
+      showModalTitle: qs('#showModalTitle'),
+      showModalSubtitle: qs('#showModalSubtitle'),
+      showPlay: qs('#showPlay'),
+      showPlayHint: qs('#showPlayHint'),
+      showRoom: qs('#showRoom'),
+      showRoomHint: qs('#showRoomHint'),
+      showDate: qs('#showDate'),
+      showStart: qs('#showStart'),
+      showEndTime: qs('#showEndTime'),
+      showDurationBadge: qs('#showDurationBadge'),
+      showRoomAvailability: qs('#showRoomAvailability'),
+      showConflictNote: qs('#showConflictNote'),
+      showSaveBtn: qs('#showSaveBtn'),
+      showCastPicker: qs('#showCastPicker'),
+      showCastCount: qs('#showCastCount'),
+      seatModal: qs('#seatModal'),
+      seatModalHeader: qs('#seatModalHeader'),
+      seatModalBody: qs('#seatModalBody'),
+      deleteShowBtn: qs('#deleteShowBtn'),
+      editShowBtn: qs('#editShowBtn'),
+      roomInfoModal: qs('#roomInfoModal'),
+      roomInfoTitle: qs('#roomInfoTitle'),
+      roomInfoBody: qs('#roomInfoBody'),
+      roomInfoAddShow: qs('#roomInfoAddShow'),
+      confirmModal: qs('#confirmModal'),
+      confirmTitle: qs('#confirmTitle'),
+      confirmBody: qs('#confirmBody'),
+      confirmActionBtn: qs('#confirmActionBtn'),
+      toastContainer: qs('#toastContainer')
+    });
+  }
+
+  function openShowFromTimelineTrack(track, clientX = null) {
+    const roomId = Number(track.dataset.timelineRoom);
+    if (!roomId) return;
+    let startTime = roundedStartValue();
+    if (clientX !== null) {
+      const rect = track.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+      let minute = DAY_START_MIN + ratio * DAY_SPAN_MIN;
+      minute = Math.round(minute / 15) * 15;
+      minute = Math.max(DAY_START_MIN, Math.min(DAY_END_MIN - 15, minute));
+      startTime = `${pad2(Math.floor(minute / 60))}:${pad2(minute % 60)}`;
+    }
+    openShowModal({ roomId, date: state.simNow, startTime });
+  }
+
+  function openSeatAfterRoomInfo(showId) {
+    const roomInfoInstance = bootstrap.Modal.getInstance(dom.roomInfoModal);
+    if (roomInfoInstance && dom.roomInfoModal.classList.contains('show')) {
+      dom.roomInfoModal.addEventListener('hidden.bs.modal', () => openSeatMap(showId), { once: true });
+      roomInfoInstance.hide();
+    } else {
+      openSeatMap(showId);
+    }
+  }
+
+  function openShowAfterRoomInfo() {
+    const roomId = state.roomInfoId;
+    const roomInfoInstance = bootstrap.Modal.getInstance(dom.roomInfoModal);
+    const openHandler = () => openShowModal({ roomId, date: state.simNow, startTime: roundedStartValue() });
+    if (roomInfoInstance && dom.roomInfoModal.classList.contains('show')) {
+      dom.roomInfoModal.addEventListener('hidden.bs.modal', openHandler, { once: true });
+      roomInfoInstance.hide();
+    } else {
+      openHandler();
+    }
+  }
+
+  function bindEvents() {
+    qsa('[data-view-link]').forEach((button) => {
+      button.addEventListener('click', () => setView(button.dataset.viewLink));
+    });
+
+    dom.sidebarToggle.addEventListener('click', toggleSidebar);
+    dom.sidebarClose.addEventListener('click', closeSidebar);
+    dom.sidebarBackdrop.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
+        closeSidebar();
+      }
+    });
+
+    let wasDesktop = isDesktopSidebar();
+    window.addEventListener('resize', () => {
+      const desktop = isDesktopSidebar();
+      if (desktop !== wasDesktop) {
+        document.body.classList.remove('sidebar-open');
+        if (!desktop) document.body.classList.remove('sidebar-collapsed');
+        wasDesktop = desktop;
+      }
+      syncSidebarButton();
+    });
+    syncSidebarButton();
+
+    dom.simDate.addEventListener('change', handleSimulationChange);
+    dom.simTime.addEventListener('change', handleSimulationChange);
+    dom.simNowBtn.addEventListener('click', jumpToRealTime);
+
+    dom.addPlayBtn.addEventListener('click', () => openPlayModal());
+    dom.addActorBtn.addEventListener('click', () => openActorModal());
+    dom.addShowBtn.addEventListener('click', () => openShowModal());
+    dom.timelineAddBtn.addEventListener('click', () => openShowModal());
+
+    dom.roomCards.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-room-card]');
+      if (!card) return;
+      handleRoomCard(Number(card.dataset.roomCard));
+    });
+    dom.roomCards.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const card = event.target.closest('[data-room-card]');
+      if (!card) return;
+      event.preventDefault();
+      handleRoomCard(Number(card.dataset.roomCard));
+    });
+
+    dom.playsTableBody.addEventListener('click', (event) => {
+      const editButton = event.target.closest('[data-play-edit]');
+      const deleteButton = event.target.closest('[data-play-delete]');
+      if (editButton) openPlayModal(Number(editButton.dataset.playEdit));
+      if (deleteButton) requestDeletePlay(Number(deleteButton.dataset.playDelete));
+    });
+
+    dom.actorGrid.addEventListener('click', (event) => {
+      const addButton = event.target.closest('[data-add-actor]');
+      const editButton = event.target.closest('[data-actor-edit]');
+      const deleteButton = event.target.closest('[data-actor-delete]');
+      if (addButton) openActorModal();
+      if (editButton) openActorModal(Number(editButton.dataset.actorEdit));
+      if (deleteButton) requestDeleteActor(Number(deleteButton.dataset.actorDelete));
+    });
+
+    dom.weekPrev.addEventListener('click', () => {
+      state.calendarWeekStart = addDays(startOfWeek(state.calendarWeekStart), -7);
+      renderCalendar();
+    });
+    dom.weekNext.addEventListener('click', () => {
+      state.calendarWeekStart = addDays(startOfWeek(state.calendarWeekStart), 7);
+      renderCalendar();
+    });
+    dom.weekToday.addEventListener('click', () => {
+      state.calendarWeekStart = startOfWeek(state.simNow);
+      renderCalendar();
+    });
+
+    dom.weekCalendar.addEventListener('click', (event) => {
+      const showButton = event.target.closest('[data-show-open]');
+      if (!showButton) return;
+      openSeatMap(Number(showButton.dataset.showOpen));
+    });
+
+    dom.timelineArea.addEventListener('click', (event) => {
+      const showButton = event.target.closest('[data-show-open]');
+      if (showButton) {
+        openSeatMap(Number(showButton.dataset.showOpen));
+        return;
+      }
+      const track = event.target.closest('[data-timeline-room]');
+      if (!track) return;
+      openShowFromTimelineTrack(track, event.clientX);
+    });
+    dom.timelineArea.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (!event.target.classList.contains('tl-track')) return;
+      event.preventDefault();
+      openShowFromTimelineTrack(event.target);
+    });
+
+    dom.playColorSwatches.addEventListener('click', (event) => {
+      const swatch = event.target.closest('[data-color-swatch]');
+      if (!swatch) return;
+      dom.playColor.value = normalizeHex(swatch.dataset.colorSwatch);
+      updatePlayPreview();
+    });
+    dom.playColor.addEventListener('input', updatePlayPreview);
+    dom.playTitle.addEventListener('input', updatePlayPreview);
+    dom.playDuration.addEventListener('input', updatePlayPreview);
+    dom.playForm.addEventListener('submit', handlePlaySubmit);
+    dom.actorForm.addEventListener('submit', handleActorSubmit);
+
+    dom.showPlay.addEventListener('change', () => refreshShowForm());
+    dom.showRoom.addEventListener('change', () => refreshShowForm({ preferredRoomId: dom.showRoom.value }));
+    dom.showDate.addEventListener('change', () => refreshShowForm());
+    dom.showStart.addEventListener('change', () => refreshShowForm());
+    dom.showCastPicker.addEventListener('change', updateShowCastCount);
+    dom.showForm.addEventListener('submit', handleShowSubmit);
+    dom.showModal.addEventListener('hidden.bs.modal', () => {
+      state.editingShowId = null;
+    });
+
+    dom.seatModalBody.addEventListener('click', (event) => {
+      const seat = event.target.closest('[data-seat-row][data-seat-number]');
+      if (!seat) return;
+      toggleSeat(Number(seat.dataset.seatRow), Number(seat.dataset.seatNumber));
+    });
+    dom.seatModal.addEventListener('hidden.bs.modal', () => {
+      state.activeSeatShowId = null;
+    });
+    dom.deleteShowBtn.addEventListener('click', () => {
+      if (state.activeSeatShowId) requestDeleteShow(state.activeSeatShowId);
+    });
+    dom.editShowBtn.addEventListener('click', openShowEditFromSeat);
+
+    dom.roomInfoBody.addEventListener('click', (event) => {
+      const showButton = event.target.closest('[data-show-open]');
+      if (!showButton) return;
+      openSeatAfterRoomInfo(Number(showButton.dataset.showOpen));
+    });
+    dom.roomInfoAddShow.addEventListener('click', openShowAfterRoomInfo);
+
+    dom.confirmActionBtn.addEventListener('click', () => {
+      const resolver = state.confirmResolve;
+      state.confirmResolve = null;
+      closeModal(dom.confirmModal);
+      if (resolver) resolver(true);
+    });
+    dom.confirmModal.addEventListener('hidden.bs.modal', () => {
+      window.setTimeout(() => {
+        if (document.querySelector('.modal.show')) {
+          document.body.classList.add('modal-open');
+        }
+      }, 100);
+      if (!state.confirmResolve) return;
+      const resolver = state.confirmResolve;
+      state.confirmResolve = null;
+      resolver(false);
+    });
+
+    window.addEventListener('hashchange', () => {
+      const hashView = window.location.hash.replace('#', '');
+      if (VIEW_META[hashView] && hashView !== state.currentView) {
+        setView(hashView, false);
+      }
+    });
+  }
+
+  function init() {
+    cacheDom();
+    seedData();
+    renderColorSwatches();
+    bindEvents();
+    const initialView = window.location.hash.replace('#', '');
+    setView(VIEW_META[initialView] ? initialView : 'termek', false);
+    renderAll();
+    syncSidebarButton();
+  }
+
+  init();
+})();
+  </script>
+</body>
+</html>
