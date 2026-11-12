@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="hu" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zsiráf Színház - Előadások</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Közös CSS fájl bekötése -->
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <!-- BAL OLDALI MENÜ -->
+        <div class="col-12 col-md-3 col-lg-2">
+            <div class="sidebar">
+                <h1>Zsiráf Színház</h1>
+                <div class="sidebar-menu mt-4">
+                    <h2 th:onclick="|window.location.href='/főoldal'|">Főoldal</h2>
+                    <h2 th:onclick="|window.location.href='/darabok'|">Színdarabok</h2>
+                    <h2 th:onclick="|window.location.href='/szineszek'|">Színészek</h2>
+                    <h2 class="active" th:onclick="|window.location.href='/eloadasok'|">Előadások</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOBB OLDALI FŐ TARTALOM (Offset) -->
+        <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
+            
+            <!-- Fejléc -->
+            <div class="top-bar">
+                <h3 class="page-title">Műsorfüzet</h3>
+            </div>
+
+            <div class="px-4 pb-5">
+                
+                <!-- ELŐADÁSOK LISTÁJA -->
+                <div class="schedule-list">
+
+                    <!-- 1. Előadás (Alföld-díjasok) -->
+                    <div class="schedule-row">
+                        <!-- Dátum -->
+                        <div class="schedule-date">
+                            <div class="sch-month">November</div>
+                            <div class="sch-day">5</div>
+                            <div class="sch-weekday">Csütörtök</div>
+                            <div class="sch-time"><i class="bi bi-clock"></i> 17:00</div>
+                        </div>
+                        
+                        <!-- Részletek -->
+                        <div class="schedule-details">
+                            <div class="sch-title">Alföld-díjasok estje / DIN 2026</div>
+                            <div class="sch-location">Játszóhely: Zsiráf Fórum, Stúdióterem</div>
+                        </div>
+
+                        <!-- Gomb és Kategória -->
+                        <div class="schedule-action">
+                            <div class="sch-category">Debreceni Irodalmi Napok</div>
+                            <button class="btn-ticket"><i class="bi bi-ticket-perforated-fill me-2"></i>Jegyvásárlás</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Előadás (A dzsungel könyve) -->
+                    <div class="schedule-row">
+                        <div class="schedule-date">
+                            <div class="sch-month">November</div>
+                            <div class="sch-day">5</div>
+                            <div class="sch-weekday">Csütörtök</div>
+                            <div class="sch-time"><i class="bi bi-clock"></i> 19:00</div>
+                        </div>
+                        
+                        <div class="schedule-details">
+                            <div class="sch-title">Dés László – Geszti Péter – Békés Pál: A dzsungel könyve</div>
+                            <div class="sch-subtitle">musical</div>
+                            <div class="sch-location">Játszóhely: Zsiráf Teátrum, Nagyterem</div>
+                        </div>
+
+                        <div class="schedule-action">
+                            <div class="sch-category">Zenés</div>
+                            <button class="btn-ticket"><i class="bi bi-ticket-perforated-fill me-2"></i>Jegyvásárlás</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Előadás (Csokonai Társalgó Extra - Ingyenes gomb) -->
+                    <div class="schedule-row">
+                        <div class="schedule-date">
+                            <div class="sch-month">November</div>
+                            <div class="sch-day">7</div>
+                            <div class="sch-weekday">Szombat</div>
+                            <div class="sch-time"><i class="bi bi-clock"></i> 17:00</div>
+                        </div>
+                        
+                        <div class="schedule-details">
+                            <div class="sch-title">Zsiráf Társalgó Extra / Történeteink szabadon</div>
+                            <div class="sch-subtitle">Juhász Anna összművészeti pódiumműsora</div>
+                            <div class="sch-location">Játszóhely: Zsiráf Fórum, Kamaraterem</div>
+                        </div>
+
+                        <div class="schedule-action">
+                            <div class="sch-category">Irodalmi Napok</div>
+                            <!-- "free" osztály hozzáadva a fehér gombhoz a képed alapján -->
+                            <button class="btn-ticket free">Ingyenes</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

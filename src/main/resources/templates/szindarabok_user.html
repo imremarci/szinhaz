@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="hu" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zsiráf Színház - Színdarabok</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">    
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <!-- BAL OLDALI MENÜ -->
+        <div class="col-12 col-md-3 col-lg-2">
+            <div class="sidebar">
+                <h1>Zsiráf Színház</h1>
+                <div class="sidebar-menu mt-4">
+                    <h2 th:onclick="|window.location.href='/főoldal'|">Főoldal</h2>
+                    <h2 class="active" th:onclick="|window.location.href='/darabok'|">Színdarabok</h2>
+                    <h2 th:onclick="|window.location.href='/szineszek'|">Színészek</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOBB OLDALI FŐ TARTALOM -->
+        <div class="col-12 col-md-9 col-lg-10">
+            
+            <!-- Fejléc -->
+            <div class="top-bar">
+                <h3 class="page-title">Műsoron lévő darabjaink</h3>
+            </div>
+
+            <div class="px-4 pb-5">
+                
+                <!-- IDE KERÜL MAJD A THYMELEAF CIKLUS (th:each) A BACKENDBŐL -->
+
+                <!-- 1. Színdarab kártya -->
+                <div class="play-card-item">
+                    <!-- Kép: Később ez th:src lesz, most egy helykitöltőt kapott -->
+                    <img src="https://images.unsplash.com/photo-1585699324551-f6c309eedeca?q=80&w=250&h=300&fit=crop" class="play-image" alt="Hamlet borítókép">
+                    
+                    <div class="play-content">
+                        <h2 class="play-title">Hamlet</h2>
+                        <p class="play-desc">
+                            William Shakespeare klasszikus tragédiája, mely a bosszú, az őrület és az árulás mélylélektani útvesztőibe kalauzolja a nézőt. Dánia ifjú hercege apja szellemének megjelenése után kétségek közt őrlődik: bosszút álljon-e a gyilkoson, vagy engedjen a sorsnak? A darab örökérvényű kérdéseket feszeget az emberi természetről
+                            <a href="/darab/hamlet" th:href="@{/darab/1}" class="read-more">... és tovább</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. Színdarab kártya -->
+                <div class="play-card-item">
+                    <img src="https://images.unsplash.com/photo-1514306191717-452ec28c7814?q=80&w=250&h=300&fit=crop" class="play-image" alt="Rómeó és Júlia borítókép">
+                    
+                    <div class="play-content">
+                        <h2 class="play-title">Rómeó és Júlia</h2>
+                        <p class="play-desc">
+                            Két viszálykodó veronai család, a Montague-k és a Capuletek árnyékában bontakozik ki a világirodalom legszebb és legtragikusabb szerelmi története. A lángoló, mindent elsöprő ifjúkori szenvedély megpróbálja legyőzni a gyűlöletet, ám a sors kegyetlen játéka végzetes következményekkel jár
+                            <a href="/darab/romeo" th:href="@{/darab/2}" class="read-more">... és tovább</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3. Színdarab kártya -->
+                <div class="play-card-item">
+                    <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=250&h=300&fit=crop" class="play-image" alt="Az ügynök halála borítókép">
+                    
+                    <div class="play-content">
+                        <h2 class="play-title">Az ügynök halála</h2>
+                        <p class="play-desc">
+                            Arthur Miller megrázó drámája Willy Loman, a kiöregedett utazó ügynök utolsó napjait meséli el. Ahogy az amerikai álom illúziója szertefoszlik, Willy kétségbeesetten próbálja megtalálni élete értelmét és igazolni létezését a családja előtt. Egy megrendítő történet a sikertelenségről és a múlt démonairól
+                            <a href="/darab/ugynok" th:href="@{/darab/3}" class="read-more">... és tovább</a>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

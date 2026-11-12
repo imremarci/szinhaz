@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="hu" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zsiráf Színház - Regisztráció</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+</head>
+<body class="auth-body">
+    <div class="auth-card large">
+        <h1 class="theater-title">Zsiráf Színház</h1>
+        <div class="page-subtitle">Csatlakozz a közönségünkhöz!</div>
+        
+        <!-- Később ide jöhet a Thymeleaf form akció a mentéshez -->
+        <form>
+            <div class="mb-4">
+                <label for="fullName" class="form-label"><i class="bi bi-person-vcard me-2"></i>Teljes Név</label>
+                <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Pl.: Kovács János" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="username" class="form-label"><i class="bi bi-person-fill me-2"></i>Felhasználónév</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Válassz egy egyedi nevet" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="form-label"><i class="bi bi-lock-fill me-2"></i>Jelszó</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-gold w-100">Regisztrálok</button>
+        </form>
+
+        <div class="auth-link">
+            Már van fiókod? <br>
+            <!-- A link visszamutat a bejelentkezésre -->
+            <a href="/bejelentkezes" th:href="@{/bejelentkezés}">Lépj be itt!</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

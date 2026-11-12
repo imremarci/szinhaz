@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="hu" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zsiráf Színház - Jegyvásárlás</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Közös CSS fájl bekötése -->
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <!-- BAL OLDALI MENÜ (ugyanaz) -->
+        <div class="col-12 col-md-3 col-lg-2">
+            <div class="sidebar">
+                <h1>Zsiráf Színház</h1>
+                <div class="sidebar-menu mt-4">
+                    <h2 th:onclick="|window.location.href='/főoldal'|">Főoldal</h2>
+                    <h2 th:onclick="|window.location.href='/darabok'|">Színdarabok</h2>
+                    <h2 th:onclick="|window.location.href='/szineszek'|">Színészek</h2>
+                    <h2 class="active" th:onclick="|window.location.href='/eloadasok'|">Előadások</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOBB OLDALI FŐ TARTALOM -->
+        <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
+            
+            <!-- Fejléc Vissza gombbal -->
+            <div class="top-bar">
+                <a href="/eloadasok" th:href="@{/eloadasok}" class="text-decoration-none">
+                    <button class="btn btn-outline-light"><i class="bi bi-arrow-left me-2"></i>Vissza a műsorhoz</button>
+                </a>
+                <h3 class="page-title m-0">Helyfoglalás</h3>
+            </div>
+
+            <div class="px-4 pb-5">
+                <div class="row g-4">
+                    
+                    <!-- BAL OLDAL: Darab adatai és összegzés -->
+                    <div class="col-12 col-lg-4">
+                        <div class="ticket-info-panel">
+                            <h2 class="ticket-play-title">A dzsungel könyve</h2>
+                            <div class="ticket-date-time">
+                                <i class="bi bi-calendar-event me-2"></i> 2026. Nov 05. <br>
+                                <i class="bi bi-clock me-2 mt-2 d-inline-block"></i> 19:00
+                            </div>
+                            
+                            <p class="text-secondary">
+                                Játszóhely: <strong>Zsiráf Teátrum, Nagyterem</strong><br>
+                                Kategória: Zenés / Musical
+                            </p>
+
+                            <!-- Kiválasztott jegyek összegzése -->
+                            <div class="ticket-summary">
+                                <h5 class="text-white mb-3">Kiválasztott helyek</h5>
+                                <div id="selected-seats-list" class="text-secondary mb-3">
+                                    <em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-3 mt-3">
+                                    <span class="text-white">Fizetendő:</span>
+                                    <strong class="text-warning fs-4">0 Ft</strong>
+                                </div>
+                                <button class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Tovább a fizetéshez</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JOBB OLDAL: Grafikus nézőtér -->
+                    <div class="col-12 col-lg-8">
+                        <div class="ticket-seat-map">
+                            
+                            <!-- Színpad -->
+                            <div class="stage-large">SZÍNPAD</div>
+
+                            <!-- Ülésrend (Nézőtér) -->
+                            <div class="auditorium-large">
+                                <!-- 1. Sor -->
+                                <div class="seat-row-large">
+                                    <div class="row-number">1.</div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="ms-4"></div> <!-- Folyosó -->
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                </div>
+
+                                <!-- 2. Sor -->
+                                <div class="seat-row-large">
+                                    <div class="row-number">2.</div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="ms-4"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                </div>
+
+                                <!-- 3. Sor -->
+                                <div class="seat-row-large">
+                                    <div class="row-number">3.</div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="ms-4"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                </div>
+                                
+                                <!-- 4. Sor -->
+                                <div class="seat-row-large">
+                                    <div class="row-number">4.</div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="ms-4"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                    <div class="seat-large taken" title="Foglalt"></div>
+                                </div>
+                            </div>
+
+                            <!-- Jelmagyarázat -->
+                            <div class="seat-legend">
+                                <div class="legend-item">
+                                    <div class="legend-box" style="background-color: #444; border-bottom: 3px solid #222;"></div>
+                                    <span>Szabad</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-box" style="background-color: #28a745; border-bottom: 3px solid #1e7e34;"></div>
+                                    <span>Kiválasztott</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-box" style="background-color: var(--theater-red); border-bottom: 3px solid #4a0000;"></div>
+                                    <span>Foglalt</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Egyszerű JS a székek kattintásához -->
+<script>
+    let selectedCount = 0;
+    const ticketPrice = 4500; // Egy jegy ára
+
+    function toggleSeat(seatElement) {
+        if (seatElement.classList.contains('taken')) return; // A foglaltra nem lehet kattintani
+
+        // Kijelölés kapcsolgatása
+        seatElement.classList.toggle('selected');
+        
+        // Számoljuk újra, hány van kijelölve
+        selectedCount = document.querySelectorAll('.seat-large.selected').length;
+        
+        const listDiv = document.getElementById('selected-seats-list');
+        const priceDiv = document.querySelector('.text-warning.fs-4');
+        const btnCheckout = document.getElementById('btn-checkout');
+
+        if (selectedCount > 0) {
+            listDiv.innerHTML = `<span class="text-white">${selectedCount} db</span> jegy kiválasztva.`;
+            priceDiv.innerText = (selectedCount * ticketPrice).toLocaleString('hu-HU') + ' Ft';
+            btnCheckout.removeAttribute('disabled');
+        } else {
+            listDiv.innerHTML = '<em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>';
+            priceDiv.innerText = '0 Ft';
+            btnCheckout.setAttribute('disabled', 'true');
+        }
+    }
+</script>
+</body>
+</html>
