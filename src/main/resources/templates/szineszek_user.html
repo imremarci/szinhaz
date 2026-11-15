@@ -18,9 +18,10 @@
             <div class="sidebar">
                 <h1>Zsiráf Színház</h1>
                 <div class="sidebar-menu mt-4">
-                    <h2 th:onclick="|window.location.href='/főoldal'|">Főoldal</h2>
-                    <h2 th:onclick="|window.location.href='/darabok'|">Színdarabok</h2>
-                    <h2 class="active" th:onclick="|window.location.href='/szineszek'|">Színészek</h2>
+                    <h2 th:onclick="|window.location.href='@{/fooldal}'|">Főoldal</h2>
+                    <h2 th:onclick="|window.location.href='@{/darabok}'|">Színdarabok</h2>
+                    <h2 class="active" th:onclick="|window.location.href='@{/szineszek}'|">Színészek</h2>
+                    <h2 th:onclick="|window.location.href='@{/eloadasok}'|">Előadások</h2>
                 </div>
             </div>
         </div>
@@ -32,49 +33,15 @@
             </div>
 
             <div class="px-4 pb-5">
-                <!-- 4 OSZLOPOS RÁCS: row-cols-lg-4 -->
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                     
-                    <!-- 1. Színész -->
-                    <div class="col">
+                    <!-- SZÍNÉSZEK AZ ADATBÁZISBÓL -->
+                    <div class="col" th:each="actor : ${actors}">
                         <div class="actor-card">
-                            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&h=400&fit=crop" class="actor-image" alt="Színész 1">
+                            <img th:src="${actor.profileImageUrl}" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&h=400&fit=crop" class="actor-image" alt="Színész">
                             <div class="actor-info">
-                                <h4 class="actor-name">Nagy Ervin</h4>
-                                <div class="actor-rating"><i class="bi bi-star-fill"></i> 4.9</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Színész -->
-                    <div class="col">
-                        <div class="actor-card">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&h=400&fit=crop" class="actor-image" alt="Színész 2">
-                            <div class="actor-info">
-                                <h4 class="actor-name">Ónodi Eszter</h4>
-                                <div class="actor-rating"><i class="bi bi-star-fill"></i> 4.8</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Színész -->
-                    <div class="col">
-                        <div class="actor-card">
-                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&h=400&fit=crop" class="actor-image" alt="Színész 3">
-                            <div class="actor-info">
-                                <h4 class="actor-name">Mácsai Pál</h4>
-                                <div class="actor-rating"><i class="bi bi-star-fill"></i> 5.0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. Színész -->
-                    <div class="col">
-                        <div class="actor-card">
-                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&h=400&fit=crop" class="actor-image" alt="Színész 4">
-                            <div class="actor-info">
-                                <h4 class="actor-name">Tenki Réka</h4>
-                                <div class="actor-rating"><i class="bi bi-star-fill"></i> 4.7</div>
+                                <h4 class="actor-name" th:text="${actor.name}">Nagy Ervin</h4>
+                                <div class="actor-rating"><i class="bi bi-star-fill"></i> <span th:text="${actor.rating}">4.9</span></div>
                             </div>
                         </div>
                     </div>

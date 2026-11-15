@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zsiráf Színház - Főoldal</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons (kosár és kuka ikonokhoz) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
 </head>
@@ -20,9 +18,10 @@
             <div class="sidebar">
                 <h1>Zsiráf Színház</h1>
                 <div class="sidebar-menu mt-4">
-                    <h2 class="active" th:onclick="|window.location.href='/főoldal'|">Főoldal</h2>
-                    <h2 th:onclick="|window.location.href='/darabok'|">Színdarabok</h2>
-                    <h2 th:onclick="|window.location.href='/szineszek'|">Színészek</h2>
+                    <h2 class="active" th:onclick="|window.location.href='@{/fooldal}'|">Főoldal</h2>
+                    <h2 th:onclick="|window.location.href='@{/darabok}'|">Színdarabok</h2>
+                    <h2 th:onclick="|window.location.href='@{/szineszek}'|">Színészek</h2>
+                    <h2 th:onclick="|window.location.href='@{/eloadasok}'|">Előadások</h2>
                 </div>
             </div>
         </div>
@@ -30,18 +29,20 @@
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
             
-            <!-- Fejléc (Bejelentkezés és Kosár) -->
+            <!-- Fejléc (Bejelentkezés és Kosár bekötve) -->
             <div class="top-bar d-flex justify-content-end align-items-center">
-                <button class="btn btn-gold me-4"><i class="bi bi-person-fill me-2"></i>Bejelentkezés</button>
-                <div class="position-relative">
+                <a th:href="@{/bejelentkezes}" class="text-decoration-none">
+                    <button class="btn btn-gold me-4"><i class="bi bi-person-fill me-2"></i>Bejelentkezés</button>
+                </a>
+                <div class="position-relative" style="cursor: pointer;" th:onclick="|window.location.href='@{/kosar}'|">
                     <i class="bi bi-cart3 cart-icon"></i>
-                    <span class="cart-badge text-white fw-bold">2</span> <!-- Statikus 2-es a kosárban -->
+                    <span class="cart-badge text-white fw-bold">2</span>
                 </div>
             </div>
 
             <div class="px-4 pb-5">
                 
-                <!-- CAROUSEL (Pörgetős színdarabok) -->
+                <!-- CAROUSEL -->
                 <h4 class="section-title">Kiemelt Előadásaink</h4>
                 <div id="playCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
                     <div class="carousel-indicators">
@@ -51,7 +52,6 @@
                     </div>
                     
                     <div class="carousel-inner">
-                        <!-- 1. Darab -->
                         <div class="carousel-item active">
                             <div class="carousel-overlay"></div>
                             <div class="carousel-caption">
@@ -59,15 +59,13 @@
                                 <p class="mb-0">Rendező: William Shakespeare | Jegyek már kaphatók!</p>
                             </div>
                         </div>
-                        <!-- 2. Darab -->
                         <div class="carousel-item">
                             <div class="carousel-overlay"></div>
                             <div class="carousel-caption">
-                                <h3>Rómeó és Júlia</h3>
-                                <p class="mb-0">Klasszikus tragédia a Nagyteremben.</p>
+                                <h3>A dzsungel könyve</h3>
+                                <p class="mb-0">Klasszikus musical a Nagyteremben.</p>
                             </div>
                         </div>
-                        <!-- 3. Darab -->
                         <div class="carousel-item">
                             <div class="carousel-overlay"></div>
                             <div class="carousel-caption">
@@ -75,17 +73,6 @@
                                 <p class="mb-0">Főszerepben: Nagy Ervin | Csak ezen a héten!</p>
                             </div>
                         </div>
-                        
-                        <!-- IDE KERÜL MAJD A THYMELEAF CIKLUS A BACKENDBŐL: -->
-                        <!--
-                        <div class="carousel-item" th:each="play, iterStat : ${activePlays}" th:classappend="${iterStat.first} ? 'active' : ''">
-                            <div class="carousel-overlay"></div>
-                            <div class="carousel-caption">
-                                <h3 th:text="${play.title}">Darab címe</h3>
-                                <p class="mb-0" th:text="'Rendező: ' + ${play.director}">Rendező neve</p>
-                            </div>
-                        </div>
-                        -->
                     </div>
                     
                     <button class="carousel-control-prev" type="button" data-bs-target="#playCarousel" data-bs-slide="prev">
@@ -96,7 +83,7 @@
                     </button>
                 </div>
 
-                <!-- IDŐSÁV (Termek és Napi előadások) -->
+                <!-- IDŐSÁV -->
                 <h4 class="section-title">Mai Műsor (Idősáv)</h4>
                 
                 <div class="time-scale">
@@ -113,22 +100,18 @@
                 </div>
 
                 <div class="timeline-container">
-                    
-                    <!-- 1. Terem -->
                     <div class="timeline-row">
                         <div class="timeline-label">Nagyterem</div>
                         <div class="timeline-track">
-                            <!-- left: (Kezdés - 10) * 10%, width: (Hossz * 10)% -->
                             <div class="play-block play-red" style="left: 0%; width: 25%;" title="Hamlet">
                                 Hamlet (10:00-12:30)
                             </div>
-                            <div class="play-block play-blue" style="left: 40%; width: 20%;" title="Rómeó és Júlia">
-                                Rómeó (14:00-16:00)
+                            <div class="play-block play-blue" style="left: 40%; width: 20%;" title="A dzsungel könyve">
+                                A dzsungel könyve (14:00-16:00)
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. Terem -->
                     <div class="timeline-row">
                         <div class="timeline-label">Kamaraterem</div>
                         <div class="timeline-track">
@@ -141,7 +124,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. Terem -->
                     <div class="timeline-row">
                         <div class="timeline-label">Stúdió</div>
                         <div class="timeline-track">
@@ -150,28 +132,12 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- IDE KERÜL MAJD A THYMELEAF CIKLUS A BACKENDBŐL: -->
-                    <!--
-                    <div class="timeline-row" th:each="room : ${rooms}">
-                        <div class="timeline-label" th:text="${room.name}">Terem neve</div>
-                        <div class="timeline-track">
-                            <div th:each="show : ${room.shows}" 
-                                 class="play-block play-red" 
-                                 th:style="'left: ' + ${(show.startHour - 10) * 10} + '%; width: ' + ${show.duration * 10} + '%;'"
-                                 th:text="${show.play.title}">
-                            </div>
-                        </div>
-                    </div>
-                    -->
-
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
