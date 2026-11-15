@@ -1,24 +1,32 @@
 package com.example.szinhaz.service;
 
-import com.example.szinhaz.model.Show;
-import com.example.szinhaz.repository.ShowRepository;
+import com.example.szinhaz.model.Room;
+import com.example.szinhaz.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 public class RoomService {
 
-    private final ShowRepository showRepository;
+    private final RoomRepository roomRepository;
 
-    public RoomService(ShowRepository showRepository) {
-        this.showRepository = showRepository;
+    public RoomService(RoomRepository roomRepository) {
+        this.roomRepository = roomRepository;
     }
 
-    public List<Show> getAllRooms() {
-        return showRepository.findAll();
+    public List<Room> getAllRooms() {
+        return roomRepository.findAll();
     }
 
-    public Show getRoomById(Long id) {
-        return showRepository.findById(id).orElse(null);
+    public Room getRoomById(Long id) {
+        return roomRepository.findById(id).orElse(null);
+    }
+
+    public void saveRoom(Room Room) {
+        roomRepository.save(Room);
+    }
+
+    public void deleteRoom(Long id) {
+        roomRepository.deleteById(id);
     }
 }

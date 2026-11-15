@@ -21,4 +21,12 @@ public class ShowService {
     public Show getShowById(Long id) {
         return showRepository.findById(id).orElse(null);
     }
+
+    public void saveShow(Show Show) {
+        showRepository.save(Show);
+    }
+
+    public void deleteShow(Long id) {
+        showRepository.deleteById(id);
+    }
 }
