@@ -14,8 +14,8 @@
 
 <div class="container-fluid p-0">
     <div class="row g-0">
-        
-        <!-- BAL OLDALI MENÜ (ugyanaz) -->
+
+        <!-- BAL OLDALI MENÜ -->
         <div class="col-12 col-md-3 col-lg-2">
             <div class="sidebar">
                 <h1>Zsiráf Színház</h1>
@@ -30,7 +30,7 @@
 
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
-            
+
             <!-- Fejléc Vissza gombbal -->
             <div class="top-bar">
                 <a href="/eloadasok" th:href="@{/eloadasok}" class="text-decoration-none">
@@ -40,38 +40,50 @@
             </div>
 
             <div class="px-4 pb-5">
-                <div class="row g-4">
-                    
-                    <!-- BAL OLDAL: Darab adatai és összegzés -->
-                    <div class="col-12 col-lg-4">
-                        <div class="ticket-info-panel">
-                            <!-- A darab címe az adatbázisból -->
-                            <h2 class="ticket-play-title" th:text="${show.play.title}">A dzsungel könyve</h2>
+                <div class="row g-4 align-items-stretch">
 
-                            <!-- Dátum és időpont formázva a startTime mezőből -->
-                            <div class="ticket-date-time">
-                                <i class="bi bi-calendar-event me-2"></i>
-                                <span th:text="${#temporals.format(show.startTime, 'yyyy. MMM dd.')}">2026. Nov 05.</span> <br>
-                                <i class="bi bi-clock me-2 mt-2 d-inline-block"></i>
-                                <span th:text="${#temporals.format(show.startTime, 'HH:mm')}">19:00</span>
+                    <!-- BAL OLDAL (50% - col-lg-6): Darab adatai és összegzés -->
+                    <div class="col-12 col-lg-6">
+                        <div class="ticket-info-panel h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <h2 class="ticket-play-title" th:text="${show.play.title}">A dzsungel könyve</h2>
+                                <div class="ticket-date-time">
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    <span th:text="${#temporals.format(show.startTime, 'yyyy. MMM dd.')}">2026. Nov 05.</span> <br>
+                                    <i class="bi bi-clock me-2 mt-2 d-inline-block"></i>
+                                    <span th:text="${#temporals.format(show.startTime, 'HH:mm')}">19:00</span>
+                                </div>
+
+                                <p class="text-secondary">
+                                    Játszóhely: <strong th:text="${show.room.name}">Zsiráf Teátrum, Nagyterem</strong><br>
+                                    Rendező: <span th:text="${show.play.director}">Rendező neve</span>
+                                </p>
                             </div>
 
-                            <!-- Terem neve az adatbázisból -->
-                            <p class="text-secondary">
-                                Játszóhely: <strong th:text="${show.room.name}">Zsiráf Teátrum, Nagyterem</strong><br>
-                                Rendező: <span th:text="${show.play.director}">Rendező neve</span>
-                            </p>
+                            <!-- Kiválasztott jegyek összegzése -->
+                            <div class="ticket-summary mt-4">
+                                <h5 class="text-white mb-3">Kiválasztott helyek</h5>
+                                <div id="selected-seats-list" class="text-secondary mb-3">
+                                    <em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-3 mt-3">
+                                    <span class="text-white">Fizetendő:</span>
+                                    <strong class="text-warning fs-4">0 Ft</strong>
+                                </div>
+                                <button class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Tovább a fizetéshez</button>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- JOBB OLDAL: Grafikus nézőtér -->
-                    <div class="col-12 col-lg-8">
-                        <div class="ticket-seat-map">
-                            
+                    <!-- JOBB OLDAL (50% - col-lg-6): Grafikus nézőtér -->
+                    <div class="col-12 col-lg-6">
+                        <div class="ticket-seat-map h-100 d-flex flex-column justify-content-between align-items-center">
+
                             <!-- Színpad -->
-                            <div class="stage-large">SZÍNPAD</div>
+                            <div class="stage-large w-100">SZÍNPAD</div>
 
                             <!-- Ülésrend (Nézőtér) -->
-                            <div class="auditorium-large">
+                            <div class="auditorium-large my-4">
                                 <!-- 1. Sor -->
                                 <div class="seat-row-large">
                                     <div class="row-number">1.</div>
@@ -113,7 +125,7 @@
                                     <div class="seat-large" onclick="toggleSeat(this)"></div>
                                     <div class="seat-large" onclick="toggleSeat(this)"></div>
                                 </div>
-                                
+
                                 <!-- 4. Sor -->
                                 <div class="seat-row-large">
                                     <div class="row-number">4.</div>
@@ -130,7 +142,7 @@
                             </div>
 
                             <!-- Jelmagyarázat -->
-                            <div class="seat-legend">
+                            <div class="seat-legend w-100 justify-content-center">
                                 <div class="legend-item">
                                     <div class="legend-box" style="background-color: #444; border-bottom: 3px solid #222;"></div>
                                     <span>Szabad</span>
@@ -157,39 +169,36 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Egyszerű JS a székek kattintásához -->
-    <script>
-        let selectedCount = 0;
-        const ticketPrice = 4500; // Egy jegy ára
+<!-- JS a székek kattintásához -->
+<script>
+    let selectedCount = 0;
+    const ticketPrice = 4500;
 
-        function toggleSeat(seatElement) {
-            if (seatElement.classList.contains('taken')) return;
+    function toggleSeat(seatElement) {
+        if (seatElement.classList.contains('taken')) return;
 
-            seatElement.classList.toggle('selected');
+        seatElement.classList.toggle('selected');
 
-            selectedCount = document.querySelectorAll('.seat-large.selected').length;
+        selectedCount = document.querySelectorAll('.seat-large.selected').length;
 
-            const listDiv = document.getElementById('selected-seats-list');
-            const priceDiv = document.querySelector('.text-warning.fs-4');
-            const btnCheckout = document.getElementById('btn-checkout');
+        const listDiv = document.getElementById('selected-seats-list');
+        const priceDiv = document.querySelector('.text-warning.fs-4');
+        const btnCheckout = document.getElementById('btn-checkout');
 
-            if (selectedCount > 0) {
-                listDiv.innerHTML = `<span class="text-white">${selectedCount} db</span> jegy kiválasztva.`;
-                // Itt volt a hiba, most már rendesen összeszorozza az árat:
-                priceDiv.innerText = (selectedCount * ticketPrice).toLocaleString('hu-HU') + ' Ft';
-                btnCheckout.removeAttribute('disabled');
-            } else {
-                listDiv.innerHTML = '<em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>';
-                priceDiv.innerText = '0 Ft';
-                btnCheckout.setAttribute('disabled', 'true');
-            }
+        if (selectedCount > 0) {
+            listDiv.innerHTML = `<span class="text-white">${selectedCount} db</span> jegy kiválasztva.`;
+            priceDiv.innerText = (selectedCount * ticketPrice).toLocaleString('hu-HU') + ' Ft';
+            btnCheckout.removeAttribute('disabled');
+        } else {
+            listDiv.innerHTML = '<em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>';
+            priceDiv.innerText = '0 Ft';
+            btnCheckout.setAttribute('disabled', 'true');
         }
+    }
 
-        // Ha rákattint a "Tovább a fizetéshez" gombra, vigye át a Kosár oldalra
-        document.getElementById('btn-checkout').addEventListener('click', function() {
-            window.location.href = '/kosar';
-        });
-    </script>
-</div>
+    document.getElementById('btn-checkout').addEventListener('click', function() {
+        window.location.href = '/kosar';
+    });
+</script>
 </body>
 </html>
