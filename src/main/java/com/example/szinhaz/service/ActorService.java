@@ -1,25 +1,24 @@
 package com.example.szinhaz.service;
 
-import com.example.szinhaz.model.Actor;
-import com.example.szinhaz.repository.ActorRepository;
+import com.example.szinhaz.model.Show;
+import com.example.szinhaz.repository.ShowRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 public class ActorService {
 
-    private final ActorRepository actorRepository;
+    private final ShowRepository showRepository;
 
-    public ActorService(ActorRepository actorRepository) {
-        this.actorRepository = actorRepository;
+    public ActorService(ShowRepository showRepository) {
+        this.showRepository = showRepository;
     }
 
-    public List<Actor> getAllActors() {
-        return actorRepository.findAll();
+    public List<Show> getAllActor() {
+        return showRepository.findAll();
     }
 
-    public void saveActor(Actor actor) {
-        actorRepository.save(actor);
+    public Show getActorById(Long id) {
+        return showRepository.findById(id).orElse(null);
     }
 }

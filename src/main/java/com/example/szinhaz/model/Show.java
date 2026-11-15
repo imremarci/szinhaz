@@ -2,9 +2,9 @@ package com.example.szinhaz.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
+@Table(name = "shows")
 public class Show {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -20,9 +20,6 @@ public class Show {
     @JoinColumn(name = "play_id")
     private Play play;
 
-    @OneToMany(mappedBy = "show")
-    private Set<Performance> performances;
-
     public Show() {
     }
 
@@ -32,5 +29,36 @@ public class Show {
         this.play = play;
     }
 
+    // Kötelező Getterek és Setterek a Spring és a Thymeleaf számára:
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public Play getPlay() {
+        return play;
+    }
+
+    public void setPlay(Play play) {
+        this.play = play;
+    }
 }

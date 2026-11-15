@@ -1,0 +1,1075 @@
+:root {
+    --theater-gold: #d4af37;
+    --theater-dark: #121212;
+    --theater-gray: #1e1e1e;
+    --theater-red: #8b0000;
+}
+
+body {
+    background-color: var(--theater-dark);
+    color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Külön háttér a bejelentkező és regisztrációs oldalaknak */
+body.auth-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: radial-gradient(circle at center, #2a2a2a 0%, #121212 100%);
+    padding: 2rem 0;
+}
+
+/* --- BAL OLDALI MENÜ --- */
+.sidebar {
+    background-color: var(--theater-gray);
+    border-right: 2px solid var(--theater-gold);
+    /* Ezek a sorok biztosítják, hogy rögzítve legyen a képernyő bal oldalán */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: inherit; /* Hogy a Bootstrap oszlop szélességét tartsa meg */
+    padding: 2rem 1rem;
+    overflow-y: auto; /* Ha túl sok menüpont lenne, lehessen benne görgetni */
+    z-index: 1000; /* Biztosítja, hogy mindig felül maradjon */
+}
+.sidebar h1 {
+    color: var(--theater-gold);
+    font-size: 2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border-bottom: 2px solid var(--theater-gold);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.sidebar-menu h2 {
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #ccc;
+    transition: all 0.3s ease;
+}
+.sidebar-menu h2:hover, .sidebar-menu h2.active {
+    background-color: var(--theater-gold);
+    color: var(--theater-dark);
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* --- FEJLÉC ÉS GOMBOK --- */
+.top-bar {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #333;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.btn-gold {
+    background-color: var(--theater-gold);
+    color: var(--theater-dark);
+    font-weight: bold;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+}
+.btn-gold:hover {
+    background-color: #b5952f;
+    color: black;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* --- KOSÁR IKON --- */
+.cart-icon {
+    color: var(--theater-gold);
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.cart-icon:hover {
+    transform: scale(1.1);
+}
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: var(--theater-red);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+}
+
+/* --- HITELESÍTÉSI KÁRTYÁK (Login/Reg) --- */
+.auth-card {
+    background-color: var(--theater-gray);
+    border: 2px solid var(--theater-gold);
+    border-radius: 12px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+}
+.auth-card.large {
+    max-width: 500px;
+}
+.theater-title {
+    color: var(--theater-gold);
+    font-size: 2.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--theater-gold);
+    padding-bottom: 1rem;
+}
+.page-subtitle {
+    text-align: center;
+    color: #aaa;
+    font-size: 1.1rem;
+    margin-top: -1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--theater-gold);
+    padding-bottom: 1rem;
+}
+.form-label {
+    color: #ccc;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+.form-control {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 0.8rem 1rem;
+}
+.form-control:focus {
+    background-color: #333;
+    border-color: var(--theater-gold);
+    box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+    color: #fff;
+}
+.auth-link {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+.auth-link a {
+    color: var(--theater-gold);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+.auth-link a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* --- FŐOLDAL: CAROUSEL --- */
+.carousel-inner {
+    border-radius: 12px;
+    border: 2px solid var(--theater-gold);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.carousel-item {
+    height: 350px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    position: relative;
+}
+.carousel-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%);
+}
+.carousel-caption {
+    background: rgba(18, 18, 18, 0.85);
+    border: 1px solid var(--theater-gold);
+    border-radius: 8px;
+    padding: 1.5rem;
+    bottom: 30px;
+}
+.carousel-caption h3 {
+    color: var(--theater-gold);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.carousel-indicators [data-bs-target] {
+    background-color: var(--theater-gold);
+}
+
+/* --- FŐOLDAL: IDŐSÁV --- */
+.section-title {
+    color: var(--theater-gold);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+}
+.timeline-container {
+    background-color: var(--theater-gray);
+    border: 2px solid var(--theater-gold);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.time-scale {
+    display: flex;
+    padding-left: 150px;
+    padding-right: 1rem;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.timeline-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    min-height: 70px;
+}
+.timeline-row:last-child {
+    border-bottom: none;
+}
+.timeline-label {
+    width: 150px;
+    color: var(--theater-gold);
+    font-size: 1.1rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.timeline-track {
+    position: relative;
+    flex-grow: 1;
+    height: 50px;
+    background: repeating-linear-gradient(to right, transparent, transparent calc(10% - 1px), #333 calc(10% - 1px), #333 10%);
+    border-radius: 4px;
+}
+.play-block {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    transition: filter 0.2s, transform 0.2s;
+    cursor: pointer;
+}
+.play-block:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+    z-index: 10;
+}
+.play-red { background: linear-gradient(135deg, var(--theater-red), #e53935); }
+.play-blue { background: linear-gradient(135deg, #1a237e, #3949ab); }
+.play-green { background: linear-gradient(135deg, #1b5e20, #43a047); }
+
+/* --- SZÍNDARABOK: KÁRTYÁK --- */
+.page-title {
+    color: var(--theater-gold);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+.play-card-item {
+    display: flex; /* EZ A LEGFONTOSABB SOR: Ez teszi egymás mellé a képet és a szöveget! */
+    flex-direction: row; /* Biztosítja, hogy vízszintesen legyenek */
+    background-color: var(--theater-gray);
+    border-left: 4px solid var(--theater-gold);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.play-card-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+}
+.play-image {
+    width: 250px;
+    min-height: 300px;
+    object-fit: cover;
+    background-color: #2a2a2a;
+    border-right: 1px solid #333;
+}
+.play-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+.play-title-text {
+    color: var(--theater-gold);
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+.play-desc {
+    color: #ccc;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+.read-more {
+    color: var(--theater-gold);
+    font-weight: bold;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+}
+.read-more:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .play-card-item { flex-direction: column; }
+    .play-image { width: 100%; height: 250px; border-right: none; border-bottom: 1px solid #333; }
+}
+
+/* --- ADMIN: ÚJ SZÍNDARAB KÁRTYA ÉS MODAL --- */
+.add-new-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    border: 2px dashed var(--theater-gold);
+    border-radius: 8px;
+    min-height: 150px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+}
+.add-new-card:hover {
+    background-color: rgba(212, 175, 55, 0.08);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(212, 175, 55, 0.2);
+}
+.add-new-content {
+    text-align: center;
+    color: var(--theater-gold);
+}
+.add-new-content i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.add-new-content h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+/* Modal sötét dizájn */
+.modal-content.theater-modal {
+    background-color: var(--theater-gray);
+    border: 2px solid var(--theater-gold);
+    color: #fff;
+}
+.modal-header.theater-modal-header {
+    border-bottom: 1px solid #333;
+}
+.modal-title {
+    color: var(--theater-gold);
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.modal-footer.theater-modal-footer {
+    border-top: 1px solid #333;
+}
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+/* --- TERMEK ÉS SZÍNPAD KÁRTYÁK --- */
+.room-card {
+    border: 2px solid #333;
+    height: 290px;
+    background-color: var(--theater-gray);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+}
+.room-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--theater-gold);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+}
+.room-card h4 {
+    color: var(--theater-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Színpad elem */
+.stage {
+    width: 80%;
+    height: 32px;
+    background: linear-gradient(180deg, #4a0000 0%, #1a0000 100%);
+    color: var(--theater-gold);
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    border-bottom: 3px solid #aa8c2c;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+    transition: all 0.4s;
+    margin-bottom: 15px;
+}
+.room-card:hover .stage {
+    background: linear-gradient(180deg, var(--theater-red) 0%, #4a0000 100%);
+    border-bottom-color: var(--theater-gold);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}
+
+/* --- TERMEK ÉS SZÍNPAD KÁRTYÁK --- */
+.room-card {
+    border: 2px solid #333;
+    height: 290px;
+    background-color: var(--theater-gray);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+}
+.room-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--theater-gold);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+}
+.room-card h4 {
+    color: var(--theater-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Színpad elem */
+.stage {
+    width: 80%;
+    height: 32px;
+    background: linear-gradient(180deg, #4a0000 0%, #1a0000 100%);
+    color: var(--theater-gold);
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    border-bottom: 3px solid #aa8c2c;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+    transition: all 0.4s;
+    margin-bottom: 15px;
+}
+.room-card:hover .stage {
+    background: linear-gradient(180deg, var(--theater-red) 0%, #4a0000 100%);
+    border-bottom-color: var(--theater-gold);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}
+
+/* Ülésrend (Nézőtér) */
+.auditorium {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+.seat-row {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+.seat {
+    width: 18px;
+    height: 16px;
+    background-color: #444;
+    border-radius: 5px 5px 2px 2px;
+    border-bottom: 3px solid #222;
+    transition: all 0.2s;
+}
+.seat.vip {
+    background-color: #aa8c2c;
+    border-bottom-color: #7a631c;
+}
+.room-card:hover .seat {
+    background-color: #666;
+}
+.room-card:hover .seat.vip {
+    background-color: var(--theater-gold);
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+.aisle {
+    width: 14px;
+}
+
+/* Címkék */
+.badge.bg-gold {
+    background-color: #aa8c2c !important;
+    color: #000;
+    border: 1px solid var(--theater-gold);
+}
+
+/* --- KUKA GOMB AZ IDŐSÁVBAN --- */
+.delete-play-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--theater-gold);
+    border: 1px solid var(--theater-gold);
+    border-radius: 4px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.play-block:hover .delete-play-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+.delete-play-btn:hover {
+    background-color: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* --- SZÍNDARAB RÉSZLETEK OLDAL --- */
+.play-hero {
+    background-color: var(--theater-gray);
+    border-radius: 12px;
+    border: 1px solid #333;
+    border-left: 4px solid var(--theater-gold);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.play-hero-img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border: 2px solid #333;
+    object-fit: cover;
+}
+.play-title-large {
+    color: var(--theater-gold);
+    font-size: 3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1rem;
+}
+.play-meta {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+.play-meta i {
+    color: var(--theater-gold);
+    margin-right: 10px;
+    font-size: 1.3rem;
+}
+.play-description-box {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #f8f9fa;
+    margin-top: 1.5rem;
+    text-align: justify;
+}
+.section-subtitle {
+    color: var(--theater-gold);
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    margin-top: 3rem;
+    letter-spacing: 1px;
+}
+
+/* Színészek rács (Grid) */
+.cast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+.cast-card {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    border-left: 3px solid var(--theater-red);
+    transition: transform 0.2s, border-color 0.2s;
+}
+.cast-card:hover {
+    transform: translateX(5px);
+    border-left-color: var(--theater-gold);
+    background-color: #333;
+}
+.cast-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #121212;
+    border: 1px solid var(--theater-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: var(--theater-gold);
+    font-size: 1.5rem;
+}
+.cast-info h5 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.cast-info span {
+    color: #aaa;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* --- SZÍNÉSZ KÁRTYÁK --- */
+.actor-card {
+    background-color: var(--theater-gray);
+    border: 1px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.actor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+    border-color: var(--theater-gold);
+}
+.actor-image {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Tökéletes négyzet alakú kép */
+    object-fit: cover;
+    border-bottom: 2px solid var(--theater-gold);
+}
+.actor-info {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.actor-name {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+.actor-rating {
+    color: #aaa;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.actor-rating i {
+    color: var(--theater-gold); /* Arany csillag */
+    margin-right: 5px;
+}
+
+/* --- ELŐADÁSOK (MŰSORÚJSÁG) --- */
+.schedule-list {
+    background-color: var(--theater-gray);
+    border-radius: 12px;
+    border: 1px solid #333;
+    padding: 1rem 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.schedule-row {
+    display: flex;
+    flex-wrap: wrap; /* Mobilon egymás alá ugranak a blokkok */
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px dashed #444; /* Szaggatott elválasztó vonal a képed alapján */
+    transition: background-color 0.2s;
+}
+.schedule-row:last-child {
+    border-bottom: none;
+}
+.schedule-row:hover {
+    background-color: rgba(212, 175, 55, 0.05); /* Finom arany háttér rámutatáskor */
+}
+
+/* Dátum oszlop (Bal oldal) */
+.schedule-date {
+    text-align: center;
+    min-width: 120px;
+    padding-right: 1.5rem;
+    border-right: 1px solid #333;
+}
+.sch-month {
+    color: #aaa;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: -5px;
+}
+.sch-day {
+    color: var(--theater-gold);
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 5px 0;
+}
+.sch-weekday {
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+.sch-time {
+    color: #ccc;
+    font-size: 0.95rem;
+    margin-top: 5px;
+}
+.sch-time i {
+    color: var(--theater-gold);
+}
+
+/* Részletek oszlop (Közép) */
+.schedule-details {
+    flex-grow: 1;
+    padding: 0 2rem;
+}
+.sch-title {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+.sch-subtitle {
+    color: #aaa;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+.sch-location {
+    color: #777;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Akció oszlop (Jobb oldal) */
+.schedule-action {
+    text-align: right;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+.sch-category {
+    color: #888;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.btn-ticket {
+    background-color: transparent;
+    color: var(--theater-gold);
+    border: 1px solid var(--theater-gold);
+    border-radius: 20px; /* Lekerekített gomb a képed alapján */
+    padding: 0.4rem 1.2rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.btn-ticket:hover {
+    background-color: var(--theater-gold);
+    color: var(--theater-dark);
+}
+.btn-ticket.free {
+    border-color: #fff; /* Fehér szegély az "Ingyenes" gombnak */
+    color: #fff;
+}
+.btn-ticket.free:hover {
+    background-color: #fff;
+    color: var(--theater-dark);
+}
+
+/* Mobilos nézet: ha kicsi a képernyő, egymás alá essenek */
+@media (max-width: 768px) {
+    .schedule-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .schedule-date { border-right: none; border-bottom: 1px solid #333; padding-bottom: 1rem; width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .sch-day { margin: 0 15px; }
+    .schedule-details { padding: 0; width: 100%; }
+    .schedule-action { width: 100%; align-items: flex-start; text-align: left; }
+}
+
+/* --- JEGYVÁSÁRLÁS: NÉZŐTÉR ÉS INFORMÁCIÓ --- */
+.ticket-info-panel {
+    background-color: var(--theater-gray);
+    border-radius: 12px;
+    border: 1px solid #333;
+    border-top: 4px solid var(--theater-gold);
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    height: 100%;
+}
+.ticket-play-title {
+    color: var(--theater-gold);
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.ticket-date-time {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #333;
+}
+.ticket-summary {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+.ticket-seat-map {
+    background-color: var(--theater-gray);
+    border-radius: 12px;
+    border: 1px solid #333;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: auto;
+}
+
+/* Nagyobb, interaktív székek a vásárláshoz */
+.stage-large {
+    width: 80%;
+    max-width: 400px;
+    height: 40px;
+    background: linear-gradient(180deg, #4a0000 0%, #1a0000 100%);
+    color: var(--theater-gold);
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 50px 50px;
+    border-bottom: 3px solid var(--theater-gold);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    margin-bottom: 3rem;
+}
+.seat-large {
+    width: 32px;
+    height: 28px;
+    background-color: #444;
+    border-radius: 8px 8px 4px 4px;
+    border-bottom: 4px solid #222;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin: 0 5px;
+    display: inline-block;
+}
+.seat-large:hover:not(.taken) {
+    background-color: var(--theater-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.4);
+}
+.seat-large.taken {
+    background-color: var(--theater-red);
+    border-bottom-color: #4a0000;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.seat-large.selected {
+    background-color: #28a745; /* Zöld szín a kiválasztottnak */
+    border-bottom-color: #1e7e34;
+    transform: translateY(-2px);
+}
+.seat-row-large {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    align-items: center;
+}
+.row-number {
+    color: #888;
+    width: 30px;
+    text-align: right;
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+/* Jelmagyarázat */
+.seat-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+.legend-box {
+    width: 20px;
+    height: 18px;
+    border-radius: 4px;
+}
+
+/* --- KOSÁR OLDAL --- */
+.cart-container {
+    background-color: var(--theater-gray);
+    border-radius: 12px;
+    border: 1px solid #333;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    margin-bottom: 2rem;
+}
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px dashed #444;
+}
+.cart-item:last-child {
+    border-bottom: none;
+}
+.cart-item-details h4 {
+    color: var(--theater-gold);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+.cart-item-meta {
+    color: #aaa;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+.cart-item-price-block {
+    text-align: right;
+}
+.cart-item-price {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.cart-remove-btn {
+    background: transparent;
+    color: var(--theater-red);
+    border: 1px solid var(--theater-red);
+    border-radius: 6px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+}
+.cart-remove-btn:hover {
+    background: var(--theater-red);
+    color: #fff;
+}
+.cart-summary {
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    border: 1px solid var(--theater-gold);
+    padding: 2rem;
+    position: sticky;
+    top: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.summary-title {
+    color: #fff;
+    border-bottom: 1px solid #444;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    color: #ccc;
+    font-size: 1.05rem;
+}
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #444;
+    color: var(--theater-gold);
+    font-size: 1.5rem;
+    font-weight: bold;
+}

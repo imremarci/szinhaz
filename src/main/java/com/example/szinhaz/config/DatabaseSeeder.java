@@ -1,49 +1,55 @@
 package com.example.szinhaz.config;
 
-import com.example.szinhaz.model.Actor;
-import com.example.szinhaz.model.Play;
-import com.example.szinhaz.model.Room;
-import com.example.szinhaz.repository.ActorRepository;
-import com.example.szinhaz.repository.PlayRepository;
-import com.example.szinhaz.repository.RoomRepository;
+import com.example.szinhaz.model.*;
+import com.example.szinhaz.repository.*;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
 
-@Configuration
+@Component
 public class DatabaseSeeder implements CommandLineRunner {
 
-    private final RoomRepository roomRepository;
     private final PlayRepository playRepository;
     private final ActorRepository actorRepository;
+    private final RoomRepository roomRepository;
+    private final ShowRepository showRepository;
 
-    public DatabaseSeeder(RoomRepository roomRepository, PlayRepository playRepository, ActorRepository actorRepository) {
-        this.roomRepository = roomRepository;
+    public DatabaseSeeder(PlayRepository playRepository, ActorRepository actorRepository,
+                          RoomRepository roomRepository, ShowRepository showRepository) {
         this.playRepository = playRepository;
         this.actorRepository = actorRepository;
+        this.roomRepository = roomRepository;
+        this.showRepository = showRepository;
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        // 1. Termek létrehozása
-        if (roomRepository.count() == 0) {
-            roomRepository.save(new Room("Nagyterem", 20, 25));
-            roomRepository.save(new Room("Kisterem", 10, 15));
-            roomRepository.save(new Room("Stúdió", 5, 10));
-            System.out.println("Termek betöltve.");
-        }
-
-        // 2. Színdarabok létrehozása
+    public void run(String... args) {
         if (playRepository.count() == 0) {
-            playRepository.save(new Play("Hamlet", "William Shakespeare", 180));
-            playRepository.save(new Play("Az ügynök halála", "Arthur Miller", 150));
-            System.out.println("Darabok betöltve.");
-        }
+            Room nagyterem = new Room("Zsiráf Teátrum, Nagyterem", 10, 15);
+            roomRepository.save(nagyterem);
 
-        // 3. Színészek létrehozása
-        if (actorRepository.count() == 0) {
-            actorRepository.save(new Actor("Nagy Ervin", 9));
-            actorRepository.save(new Actor("Csányi Sándor", 8));
-            System.out.println("Színészek betöltve.");
+            Play hamlet = new Play(
+                    "Hamlet", "William Shakespeare", 160, 2024,
+                    "Shakespeare klasszikus tragédiája a bosszúról és az őrületről.",
+                    "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=400"
+            );
+            Play dzsungel = new Play(
+                    "A dzsungel könyve", "Dés László - Geszti Péter", 145, 2025,
+                    "Maugli és a farkasok története lenyűgöző zenés darabban.",
+                    "https://images.unsplash.com/photo-1514306191717-452ec28c7814?w=400"
+            );
+            playRepository.save(hamlet);
+            playRepository.save(dzsungel);
+
+            Actor ervin = new Actor("Nagy Ervin", 4,"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400");
+            Actor eszter = new Actor("Ónodi Eszter", 5, "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400");
+            actorRepository.save(ervin);
+            actorRepository.save(eszter);
+
+            Show eloadas1 = new Show(LocalDateTime.of(2026, 11, 20, 19, 0), nagyterem, hamlet);
+            Show eloadas2 = new Show(LocalDateTime.of(2026, 11, 22, 18, 0), nagyterem, dzsungel);
+            showRepository.save(eloadas1);
+            showRepository.save(eloadas2);
         }
     }
 }

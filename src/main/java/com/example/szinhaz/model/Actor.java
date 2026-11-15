@@ -10,13 +10,15 @@ public class Actor {
 
     private String name;
     private int rating;
+    private String profileImageUrl;
 
     public Actor() {
     }
 
-    public Actor(String name, int rating) {
+    public Actor(String name, int rating, String profileImageUrl) {
         this.name = name;
         this.rating = rating;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public Long getId() {
@@ -41,5 +43,13 @@ public class Actor {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }
