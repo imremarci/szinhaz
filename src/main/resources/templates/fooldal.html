@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zsiráf Színház - Főoldal</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
@@ -12,7 +13,7 @@
 
 <div class="container-fluid p-0">
     <div class="row g-0">
-        
+
         <!-- BAL OLDALI MENÜ -->
         <div class="col-12 col-md-3 col-lg-2">
             <div class="sidebar">
@@ -28,53 +29,44 @@
 
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
-            
-            <!-- Fejléc (Bejelentkezés és Kosár bekötve) -->
+
+            <!-- Fejléc (Bejelentkezés és Kosár) -->
             <div class="top-bar d-flex justify-content-end align-items-center">
                 <a th:href="@{/bejelentkezes}" class="text-decoration-none">
                     <button class="btn btn-gold me-4"><i class="bi bi-person-fill me-2"></i>Bejelentkezés</button>
                 </a>
                 <div class="position-relative" style="cursor: pointer;" th:onclick="|window.location.href='@{/kosar}'|">
                     <i class="bi bi-cart3 cart-icon"></i>
-                    <span class="cart-badge text-white fw-bold">2</span>
+                    <!-- Ha van kosár, kiírja a számot, ha nincs, elrejti a piros pöttyöt -->
+                    <span class="cart-badge text-white fw-bold" th:if="${session.cart != null and not #lists.isEmpty(session.cart)}" th:text="${#lists.size(session.cart)}">2</span>
                 </div>
             </div>
 
             <div class="px-4 pb-5">
-                
-                <!-- CAROUSEL -->
+
+                <!-- CAROUSEL (Adatbázisból generálva!) -->
                 <h4 class="section-title">Kiemelt Előadásaink</h4>
                 <div id="playCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
                     <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#playCarousel" data-bs-slide-to="0" class="active"></button>
-                        <button type="button" data-bs-target="#playCarousel" data-bs-slide-to="1"></button>
-                        <button type="button" data-bs-target="#playCarousel" data-bs-slide-to="2"></button>
+                        <button type="button" data-bs-target="#playCarousel"
+                                th:each="play, iterStat : ${plays}"
+                                th:data-bs-slide-to="${iterStat.index}"
+                                th:classappend="${iterStat.first} ? 'active' : ''"></button>
                     </div>
-                    
+
                     <div class="carousel-inner">
-                        <div class="carousel-item active">
+                        <!-- Végigmegyünk a darabokon -->
+                        <div class="carousel-item" th:each="play, iterStat : ${plays}" th:classappend="${iterStat.first} ? 'active' : ''">
                             <div class="carousel-overlay"></div>
+                            <!-- Ha van borítóképe, beteszi háttérnek -->
+                            <img th:src="${play.coverImageUrl}" class="d-block w-100" style="height: 300px; object-fit: cover;" alt="...">
                             <div class="carousel-caption">
-                                <h3>Hamlet</h3>
-                                <p class="mb-0">Rendező: William Shakespeare | Jegyek már kaphatók!</p>
-                            </div>
-                        </div>
-                        <div class="carousel-item">
-                            <div class="carousel-overlay"></div>
-                            <div class="carousel-caption">
-                                <h3>A dzsungel könyve</h3>
-                                <p class="mb-0">Klasszikus musical a Nagyteremben.</p>
-                            </div>
-                        </div>
-                        <div class="carousel-item">
-                            <div class="carousel-overlay"></div>
-                            <div class="carousel-caption">
-                                <h3>Az ügynök halála</h3>
-                                <p class="mb-0">Főszerepben: Nagy Ervin | Csak ezen a héten!</p>
+                                <h3 th:text="${play.title}">Hamlet</h3>
+                                <p class="mb-0" th:text="'Rendező: ' + ${play.director} + ' | Jegyek már kaphatók!'"></p>
                             </div>
                         </div>
                     </div>
-                    
+
                     <button class="carousel-control-prev" type="button" data-bs-target="#playCarousel" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon"></span>
                     </button>
@@ -83,9 +75,9 @@
                     </button>
                 </div>
 
-                <!-- IDŐSÁV -->
+                <!-- IDŐSÁV (Adatbázisból generálva!) -->
                 <h4 class="section-title">Mai Műsor (Idősáv)</h4>
-                
+
                 <div class="time-scale">
                     <div class="flex-fill">10:00</div>
                     <div class="flex-fill">11:00</div>
@@ -97,47 +89,58 @@
                     <div class="flex-fill">17:00</div>
                     <div class="flex-fill">18:00</div>
                     <div class="flex-fill">19:00</div>
+                    <div class="flex-fill">20:00</div>
+                    <div class="flex-fill">21:00</div>
+                    <div class="flex-fill">22:00</div>
                 </div>
 
                 <div class="timeline-container">
-                    <div class="timeline-row">
-                        <div class="timeline-label">Nagyterem</div>
-                        <div class="timeline-track">
-                            <div class="play-block play-red" style="left: 0%; width: 25%;" title="Hamlet">
-                                Hamlet (10:00-12:30)
-                            </div>
-                            <div class="play-block play-blue" style="left: 40%; width: 20%;" title="A dzsungel könyve">
-                                A dzsungel könyve (14:00-16:00)
-                            </div>
+
+                    <!-- Végigmegyünk az adatbázisban lévő ÖSSZES termen -->
+                    <div class="timeline-row" th:each="room : ${rooms}">
+
+                        <!-- A terem neve (pl. "Nagyterem") -->
+                        <div class="timeline-label" th:text="${#strings.substringAfter(room.name, ', ')} ?: ${room.name}">Terem</div>
+
+                        <!-- A szürke sáv, ami üresen is látszódni fog a min-height miatt -->
+                        <div class="timeline-track" style="overflow: hidden; min-height: 45px; position: relative; background-color: #222; border-radius: 4px;">
+
+                            <!-- Végigmegyünk a mai előadásokon -->
+                            <th:block th:each="show : ${shows}">
+                                <th:block th:if="${show != null and show.room != null and show.play != null and show.startTime != null}">
+
+                                    <!-- Csak akkor rajzol blokkot, ha az előadás ebbe a terembe szól -->
+                                    <th:block th:if="${show.room.name == room.name}">
+
+                                        <div th:with="
+                                startHour=${show.startTime.hour},
+                                startMin=${show.startTime.minute},
+                                duration=${show.play.durationMinutes != null ? show.play.durationMinutes : 120},
+                                leftPos=${((startHour - 10) + (startMin / 60.0)) * 8.3333},
+                                widthVal=${(duration / 60.0) * 8.3333}"
+                                             th:class="'play-block ' + (${show.play.id % 3 == 0} ? 'play-green' : (${show.play.id % 2 == 0} ? 'play-blue' : 'play-red'))"
+                                             th:style="'cursor: pointer; position: absolute; top: 0; left: ' + ${leftPos} + '%; width: ' + ${widthVal} + '%; height: 100%;'"
+                                             th:title="${show.play.title}"
+                                             th:onclick="|window.location.href='@{/eloadas/{id}(id=${show.id})}'|">
+
+                                            <span class="play-title" th:text="${show.play.title} + ' (' + ${#temporals.format(show.startTime, 'HH:mm')} + '-' + ${#temporals.format(show.startTime.plusMinutes(show.play.durationMinutes != null ? show.play.durationMinutes : 120), 'HH:mm')} + ')'"></span>
+
+                                        </div>
+
+                                    </th:block>
+                                </th:block>
+                            </th:block>
+
                         </div>
                     </div>
 
-                    <div class="timeline-row">
-                        <div class="timeline-label">Kamaraterem</div>
-                        <div class="timeline-track">
-                            <div class="play-block play-green" style="left: 20%; width: 30%;" title="Az ügynök halála">
-                                Az ügynök halála (12:00-15:00)
-                            </div>
-                            <div class="play-block play-red" style="left: 60%; width: 25%;" title="Hamlet">
-                                Hamlet (16:00-18:30)
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-row">
-                        <div class="timeline-label">Stúdió</div>
-                        <div class="timeline-track">
-                            <div class="play-block play-blue" style="left: 50%; width: 15%;" title="Rómeó és Júlia">
-                                Rómeó (15:00-16:30)
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,6 +1,9 @@
 package com.example.szinhaz.controller;
 
 import com.example.szinhaz.model.CartItem;
+import com.example.szinhaz.model.Room;
+import com.example.szinhaz.service.PlayService;
+import com.example.szinhaz.service.RoomService;
 import com.example.szinhaz.service.ShowService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,23 +12,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@SessionAttributes("cart") // Ezzel mondjuk meg a Springnek, hogy a "cart" változót tartsa meg a memóriában!
+@SessionAttributes("cart")
 public class PageController {
 
     private final ShowService showService;
+    private final PlayService playService;
+    private final RoomService roomService;
 
-    public PageController(ShowService showService) {
+    // Mindhárom Service-t injektáljuk
+    public PageController(ShowService showService, PlayService playService, RoomService roomService) {
         this.showService = showService;
+        this.playService = playService;
+        this.roomService = roomService;
     }
 
-    // Ha még nincs kosár a sessionben, létrehozunk egy üreset
     @ModelAttribute("cart")
     public List<CartItem> initializeCart() {
         return new ArrayList<>();
     }
 
     @GetMapping({"/", "/fooldal"})
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("plays", playService.getAllPlays());
+
+        // Termek lekérése az adatbázisból
+        List<Room> rooms = roomService.getAllRooms();
+
+        // Sorbarendezés: A "Nagyterem" kerüljön a lista legkéjére!
+        rooms.sort((r1, r2) -> {
+            if (r1.getName().contains("Nagyterem")) return -1; // r1 előre
+            if (r2.getName().contains("Nagyterem")) return 1;  // r2 előre
+            return r1.getName().compareTo(r2.getName());       // A többi ABC sorrendben
+        });
+
+        model.addAttribute("rooms", rooms);
+        model.addAttribute("shows", showService.getAllShows());
+
         return "fooldal";
     }
 
@@ -33,7 +55,7 @@ public class PageController {
     public String cart(@ModelAttribute("cart") List<CartItem> cart, Model model) {
         int totalTickets = cart.stream().mapToInt(CartItem::getQuantity).sum();
         int ticketsPrice = cart.stream().mapToInt(CartItem::getPrice).sum();
-        int convenienceFee = totalTickets > 0 ? 390 : 0; // Fix kényelmi díj, ha van valami a kosárban
+        int convenienceFee = totalTickets > 0 ? 390 : 0;
 
         model.addAttribute("totalTickets", totalTickets);
         model.addAttribute("ticketsPrice", ticketsPrice);
@@ -47,22 +69,17 @@ public class PageController {
     public String addToCart(@RequestParam Long showId,
                             @RequestParam String selectedSeats,
                             @ModelAttribute("cart") List<CartItem> cart) {
-
-        // A selectedSeats egy string, pl: "1-4,1-5"
         String[] seats = selectedSeats.split(",");
         int quantity = seats.length;
-        int price = quantity * 4500; // 4500 Ft / jegy
+        int price = quantity * 4500;
 
-        // Visszafejtjük a szép szöveget (pl. "1. sor 4. szék, 1. sor 5. szék")
         StringBuilder seatInfo = new StringBuilder();
         for (String seat : seats) {
             String[] parts = seat.split("-");
             seatInfo.append(parts[0]).append(". sor, ").append(parts[1]).append(". szék; ");
         }
 
-        // Hozzáadjuk a kosárhoz
         cart.add(new CartItem(showService.getShowById(showId), seatInfo.toString(), quantity, price));
-
         return "redirect:/kosar";
     }
 
