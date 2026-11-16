@@ -38,55 +38,61 @@
 
             <div class="px-4 pb-5">
                 <div class="row g-4">
-                    
+
+                    <!-- BAL OLDAL: A kosár tartalma -->
                     <div class="col-12 col-lg-8">
                         <div class="cart-container">
-                            <div class="cart-item">
+
+                            <!-- Ha üres a kosár -->
+                            <div th:if="${#lists.isEmpty(cart)}" class="text-center p-5">
+                                <h4 class="text-secondary">A kosarad jelenleg üres.</h4>
+                                <a th:href="@{/eloadasok}" class="btn btn-outline-gold mt-3">Nézz szét az előadások között!</a>
+                            </div>
+
+                            <!-- Ha vannak benne jegyek, listázzuk őket -->
+                            <div class="cart-item" th:each="item, stat : ${cart}">
                                 <div class="cart-item-details">
-                                    <h4>A dzsungel könyve</h4>
-                                    <p class="cart-item-meta"><i class="bi bi-calendar-event me-2"></i> 2026. Nov 05. 19:00</p>
-                                    <p class="cart-item-meta"><i class="bi bi-geo-alt me-2"></i> Zsiráf Teátrum, Nagyterem</p>
-                                    <p class="cart-item-meta text-white mt-2"><strong>Hely:</strong> 1. sor, 4. szék, 5. szék (2 db jegy)</p>
+                                    <h4 th:text="${item.show.play.title}">Darab címe</h4>
+                                    <p class="cart-item-meta"><i class="bi bi-calendar-event me-2"></i> <span th:text="${#temporals.format(item.show.startTime, 'yyyy. MMM dd. HH:mm')}">Dátum</span></p>
+                                    <p class="cart-item-meta"><i class="bi bi-geo-alt me-2"></i> <span th:text="${item.show.room.name}">Terem</span></p>
+                                    <p class="cart-item-meta text-white mt-2"><strong>Hely:</strong> <span th:text="${item.seatInfo}">Székek</span> (<span th:text="${item.quantity}">2</span> db jegy)</p>
                                 </div>
                                 <div class="cart-item-price-block">
-                                    <div class="cart-item-price">9 000 Ft</div>
-                                    <button class="cart-remove-btn" onclick="this.closest('.cart-item').remove()"><i class="bi bi-trash3 me-1"></i>Törlés</button>
+                                    <div class="cart-item-price" th:text="${#numbers.formatInteger(item.price, 0, 'WHITESPACE')} + ' Ft'">9 000 Ft</div>
+                                    <!-- Törlés gomb form-mal a Controllerbe -->
+                                    <form th:action="@{/kosar/torol/{index}(index=${stat.index})}" method="post">
+                                        <button type="submit" class="cart-remove-btn"><i class="bi bi-trash3 me-1"></i>Törlés</button>
+                                    </form>
                                 </div>
                             </div>
 
-                            <div class="cart-item">
-                                <div class="cart-item-details">
-                                    <h4>Hamlet</h4>
-                                    <p class="cart-item-meta"><i class="bi bi-calendar-event me-2"></i> 2026. Nov 12. 18:30</p>
-                                    <p class="cart-item-meta"><i class="bi bi-geo-alt me-2"></i> Zsiráf Fórum, Stúdióterem</p>
-                                    <p class="cart-item-meta text-white mt-2"><strong>Hely:</strong> 3. sor, 12. szék (1 db jegy)</p>
-                                </div>
-                                <div class="cart-item-price-block">
-                                    <div class="cart-item-price">5 500 Ft</div>
-                                    <button class="cart-remove-btn" onclick="this.closest('.cart-item').remove()"><i class="bi bi-trash3 me-1"></i>Törlés</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
+                    <!-- JOBB OLDAL: Összegzés -->
                     <div class="col-12 col-lg-4">
                         <div class="cart-summary">
                             <h4 class="summary-title">Összesítő</h4>
+
                             <div class="summary-row">
-                                <span>Jegyek ára (3 db):</span>
-                                <span>14 500 Ft</span>
+                                <span th:text="'Jegyek ára (' + ${totalTickets} + ' db):'">Jegyek ára:</span>
+                                <span th:text="${#numbers.formatInteger(ticketsPrice, 0, 'WHITESPACE')} + ' Ft'">0 Ft</span>
                             </div>
+
                             <div class="summary-row">
                                 <span>Kényelmi díj:</span>
-                                <span>390 Ft</span>
+                                <span th:text="${#numbers.formatInteger(convenienceFee, 0, 'WHITESPACE')} + ' Ft'">0 Ft</span>
                             </div>
+
                             <div class="summary-total">
                                 <span>Fizetendő:</span>
-                                <span>14 890 Ft</span>
+                                <span th:text="${#numbers.formatInteger(totalPrice, 0, 'WHITESPACE')} + ' Ft'">0 Ft</span>
                             </div>
-                            <button class="btn btn-gold w-100 mt-4 py-2 fs-5 text-uppercase fw-bold" onclick="alert('Sikeres vásárlás! Köszönjük!'); window.location.href='/fooldal';">
+
+                            <button class="btn btn-gold w-100 mt-4 py-2 fs-5 text-uppercase fw-bold" th:disabled="${#lists.isEmpty(cart)}" onclick="alert('Sikeres vásárlás! Köszönjük!'); window.location.href='/fooldal';">
                                 <i class="bi bi-credit-card-fill me-2"></i>Fizetés
                             </button>
+
                             <div class="text-center mt-3 text-secondary" style="font-size: 0.85rem;">
                                 <i class="bi bi-shield-lock me-1"></i> Biztonságos bankkártyás fizetés
                             </div>

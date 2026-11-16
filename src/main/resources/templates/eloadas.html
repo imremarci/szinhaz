@@ -66,15 +66,16 @@
                                 <div id="selected-seats-list" class="text-secondary mb-3">
                                     <em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-3 mt-3">
+                                <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-3 mt-3 mb-4">
                                     <span class="text-white">Fizetendő:</span>
                                     <strong class="text-warning fs-4">0 Ft</strong>
                                 </div>
-                                <button class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Tovább a fizetéshez</button>
+
+                                <!-- EZ AZ EGYETLEN FORM KÜLDI EL AZ ADATOKAT A KOSÁRNAK -->
                                 <form th:action="@{/kosar/hozzaad}" method="post" id="addToCartForm">
                                     <input type="hidden" name="showId" th:value="${show.id}">
                                     <input type="hidden" name="selectedSeats" id="selectedSeatsInput">
-                                    <button type="submit" class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Kosárba teszem</button>
+                                    <button type="submit" class="btn btn-gold w-100" disabled id="btn-checkout">KOSÁRBA TESZEM</button>
                                 </form>
                             </div>
                         </div>
@@ -182,13 +183,14 @@
         const hiddenInput = document.getElementById('selectedSeatsInput');
 
         if (selectedCount > 0) {
-            // Összegyűjtjük a kiválasztott székek adatait (pl. "1-4,1-5,2-3")
+            // Összegyűjtjük a székek sor- és székszámát
             let seatData = [];
             selectedSeats.forEach(seat => {
                 seatData.push(seat.getAttribute('data-row') + '-' + seat.getAttribute('data-seat'));
             });
 
-            hiddenInput.value = seatData.join(','); // Beírjuk a rejtett mezőbe
+            // Beírjuk a rejtett inputba, amit a form elküld
+            hiddenInput.value = seatData.join(',');
 
             listDiv.innerHTML = `<span class="text-white">${selectedCount} db</span> jegy kiválasztva.`;
             priceDiv.innerText = (selectedCount * ticketPrice).toLocaleString('hu-HU') + ' Ft';
