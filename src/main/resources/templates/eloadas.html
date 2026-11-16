@@ -71,6 +71,11 @@
                                     <strong class="text-warning fs-4">0 Ft</strong>
                                 </div>
                                 <button class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Tovább a fizetéshez</button>
+                                <form th:action="@{/kosar/hozzaad}" method="post" id="addToCartForm">
+                                    <input type="hidden" name="showId" th:value="${show.id}">
+                                    <input type="hidden" name="selectedSeats" id="selectedSeatsInput">
+                                    <button type="submit" class="btn btn-gold w-100 mt-4" disabled id="btn-checkout">Kosárba teszem</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -84,77 +89,67 @@
 
                             <!-- Ülésrend (Nézőtér) -->
                             <div class="auditorium-large my-4">
-                                <!-- 1. Sor -->
-                                <div class="seat-row-large">
-                                    <div class="row-number">1.</div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="ms-4"></div> <!-- Folyosó -->
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                </div>
 
-                                <!-- 2. Sor -->
-                                <div class="seat-row-large">
-                                    <div class="row-number">2.</div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="ms-4"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                </div>
+                                <!-- 1. NAGYTEREM (10 sor, 15 szék) -->
+                                <!-- Elrendezés: 4 szék | folyosó | 7 szék | folyosó | 4 szék -->
+                                <th:block th:if="${#strings.containsIgnoreCase(show.room.name, 'Nagyterem') or #strings.containsIgnoreCase(show.room.name, 'terem 1')}">
+                                    <div class="seat-row-large" th:each="r : ${#numbers.sequence(1, show.room.numberOfRows)}">
+                                        <div class="row-number" th:text="${r} + '.'">1.</div>
 
-                                <!-- 3. Sor -->
-                                <div class="seat-row-large">
-                                    <div class="row-number">3.</div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="ms-4"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                </div>
+                                        <!-- Bal blokk (1-4. szék) -->
+                                        <th:block th:each="s : ${#numbers.sequence(1, 4)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
 
-                                <!-- 4. Sor -->
-                                <div class="seat-row-large">
-                                    <div class="row-number">4.</div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="ms-4"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large" onclick="toggleSeat(this)"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                    <div class="seat-large taken" title="Foglalt"></div>
-                                </div>
-                            </div>
+                                        <div class="ms-2"></div> <!-- Bal folyosó -->
 
-                            <!-- Jelmagyarázat -->
-                            <div class="seat-legend w-100 justify-content-center">
-                                <div class="legend-item">
-                                    <div class="legend-box" style="background-color: #444; border-bottom: 3px solid #222;"></div>
-                                    <span>Szabad</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-box" style="background-color: #28a745; border-bottom: 3px solid #1e7e34;"></div>
-                                    <span>Kiválasztott</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-box" style="background-color: var(--theater-red); border-bottom: 3px solid #4a0000;"></div>
-                                    <span>Foglalt</span>
-                                </div>
+                                        <!-- Középső blokk (5-11. szék) -->
+                                        <th:block th:each="s : ${#numbers.sequence(5, 11)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
+
+                                        <div class="ms-2"></div> <!-- Jobb folyosó -->
+
+                                        <!-- Jobb blokk (12-15. szék) -->
+                                        <th:block th:each="s : ${#numbers.sequence(12, 15)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
+                                    </div>
+                                </th:block>
+
+                                <!-- 2. KAMARATEREM (8 sor, 10 szék) -->
+                                <!-- Elrendezés: 5 szék | folyosó | 5 szék -->
+                                <th:block th:if="${#strings.containsIgnoreCase(show.room.name, 'Kamaraterem') or #strings.containsIgnoreCase(show.room.name, 'terem 2')}">
+                                    <div class="seat-row-large" th:each="r : ${#numbers.sequence(1, show.room.numberOfRows)}">
+                                        <div class="row-number" th:text="${r} + '.'">1.</div>
+
+                                        <!-- Bal blokk (1-5. szék) -->
+                                        <th:block th:each="s : ${#numbers.sequence(1, 5)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
+
+                                        <div class="ms-3"></div> <!-- Folyosó -->
+
+                                        <!-- Jobb blokk (6-10. szék) -->
+                                        <th:block th:each="s : ${#numbers.sequence(6, 10)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
+                                    </div>
+                                </th:block>
+
+                                <!-- 3. STÚDIÓTEREM (7 sor, 8 szék) -->
+                                <!-- Elrendezés: 8 szék egyben -->
+                                <th:block th:if="${#strings.containsIgnoreCase(show.room.name, 'Stúdió') or #strings.containsIgnoreCase(show.room.name, 'Studio') or #strings.containsIgnoreCase(show.room.name, 'terem 3')}">
+                                    <div class="seat-row-large" th:each="r : ${#numbers.sequence(1, show.room.numberOfRows)}">
+                                        <div class="row-number" th:text="${r} + '.'">1.</div>
+
+                                        <!-- 8 szék folyamatosan -->
+                                        <th:block th:each="s : ${#numbers.sequence(1, 8)}">
+                                            <div class="seat-large" th:classappend="${bookedSeats != null and #lists.contains(bookedSeats, r + '-' + s)} ? 'taken' : ''" th:data-row="${r}" th:data-seat="${s}" onclick="toggleSeat(this)"></div>
+                                        </th:block>
+                                    </div>
+                                </th:block>
+
                             </div>
 
                         </div>
@@ -171,34 +166,40 @@
 
 <!-- JS a székek kattintásához -->
 <script>
-    let selectedCount = 0;
-    const ticketPrice = 4500;
+    const ticketPrice = 4500; // Egy jegy ára
 
     function toggleSeat(seatElement) {
         if (seatElement.classList.contains('taken')) return;
 
         seatElement.classList.toggle('selected');
 
-        selectedCount = document.querySelectorAll('.seat-large.selected').length;
+        const selectedSeats = document.querySelectorAll('.seat-large.selected');
+        const selectedCount = selectedSeats.length;
 
         const listDiv = document.getElementById('selected-seats-list');
         const priceDiv = document.querySelector('.text-warning.fs-4');
         const btnCheckout = document.getElementById('btn-checkout');
+        const hiddenInput = document.getElementById('selectedSeatsInput');
 
         if (selectedCount > 0) {
+            // Összegyűjtjük a kiválasztott székek adatait (pl. "1-4,1-5,2-3")
+            let seatData = [];
+            selectedSeats.forEach(seat => {
+                seatData.push(seat.getAttribute('data-row') + '-' + seat.getAttribute('data-seat'));
+            });
+
+            hiddenInput.value = seatData.join(','); // Beírjuk a rejtett mezőbe
+
             listDiv.innerHTML = `<span class="text-white">${selectedCount} db</span> jegy kiválasztva.`;
             priceDiv.innerText = (selectedCount * ticketPrice).toLocaleString('hu-HU') + ' Ft';
             btnCheckout.removeAttribute('disabled');
         } else {
+            hiddenInput.value = '';
             listDiv.innerHTML = '<em>Még nem választottál ki helyet. Kattints a nézőtéren a szabad székekre!</em>';
             priceDiv.innerText = '0 Ft';
             btnCheckout.setAttribute('disabled', 'true');
         }
     }
-
-    document.getElementById('btn-checkout').addEventListener('click', function() {
-        window.location.href = '/kosar';
-    });
 </script>
 </body>
 </html>

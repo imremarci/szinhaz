@@ -925,17 +925,7 @@ body.auth-body {
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
     margin-bottom: 3rem;
 }
-.seat-large {
-    width: 32px;
-    height: 28px;
-    background-color: #444;
-    border-radius: 8px 8px 4px 4px;
-    border-bottom: 4px solid #222;
-    transition: all 0.2s;
-    cursor: pointer;
-    margin: 0 5px;
-    display: inline-block;
-}
+
 .seat-large:hover:not(.taken) {
     background-color: var(--theater-gold);
     transform: translateY(-3px);
@@ -954,16 +944,28 @@ body.auth-body {
 }
 .seat-row-large {
     display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
+    justify-content: center; /* Középre igazítja a teljes sort */
     align-items: center;
+    margin-bottom: 4px;
 }
+
+.seat-large {
+    width: 22px;             /* Kisebb szélesség */
+    height: 22px;            /* Kisebb magasság */
+    margin: 2px;             /* Kisebb rés a székek között */
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    background-color: #444;
+    border-bottom: 3px solid #222;
+    transition: all 0.2s;
+}
+
 .row-number {
+    font-size: 12px;
     color: #888;
-    width: 30px;
+    margin-right: 10px;
+    width: 20px;
     text-align: right;
-    margin-right: 15px;
-    font-weight: bold;
 }
 
 /* Jelmagyarázat */

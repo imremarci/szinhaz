@@ -26,6 +26,11 @@ public class DatabaseSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (playRepository.count() == 0) {
             Room nagyterem = new Room("Zsiráf Teátrum, Nagyterem", 10, 15);
+            Room kamaraterem = new Room("Zsiráf Fórum, Kamaraterem", 8, 10);
+            Room studioterem = new Room("Zsiráf Fórum, Stúdióterem", 7, 8);
+
+            roomRepository.save(kamaraterem);
+            roomRepository.save(studioterem);
             roomRepository.save(nagyterem);
 
             Play hamlet = new Play(
