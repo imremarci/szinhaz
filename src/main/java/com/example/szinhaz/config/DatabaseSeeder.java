@@ -53,8 +53,10 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             Show eloadas1 = new Show(LocalDateTime.of(2026, 11, 20, 19, 0), nagyterem, hamlet);
             Show eloadas2 = new Show(LocalDateTime.of(2026, 11, 22, 18, 0), nagyterem, dzsungel);
+            Show eloadas3 = new Show(LocalDateTime.of(2026, 11, 18, 18, 0), nagyterem, dzsungel);
             showRepository.save(eloadas1);
             showRepository.save(eloadas2);
+            showRepository.save(eloadas3);
         }
     }
 }

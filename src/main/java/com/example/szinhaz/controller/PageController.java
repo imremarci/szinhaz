@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.example.szinhaz.model.Show;
+import java.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +53,15 @@ public class PageController {
             if (r2.getName().contains("Nagyterem")) return 1;
             return r1.getName().compareTo(r2.getName());
         });
-
         model.addAttribute("rooms", rooms);
-        model.addAttribute("shows", showService.getAllShows());
+
+        // Csak a mai napra eső előadások szűrése
+        LocalDate today = LocalDate.now();
+        List<Show> todayShows = showService.getAllShows().stream()
+                .filter(s -> s.getStartTime() != null && s.getStartTime().toLocalDate().equals(today))
+                .toList();
+
+        model.addAttribute("shows", todayShows);
 
         return "fooldal";
     }
