@@ -12,7 +12,7 @@
 
 <div class="container-fluid p-0">
     <div class="row g-0">
-        
+
         <!-- BAL OLDALI MENÜ -->
         <div class="col-12 col-md-3 col-lg-2">
             <div class="sidebar">
@@ -28,7 +28,7 @@
 
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
-            
+
             <div class="top-bar">
                 <h3 class="page-title m-0"><i class="bi bi-cart3 me-2"></i>Kosaram</h3>
                 <a href="/eloadasok" th:href="@{/eloadasok}" class="text-decoration-none">
@@ -59,7 +59,6 @@
                                 </div>
                                 <div class="cart-item-price-block">
                                     <div class="cart-item-price" th:text="${#numbers.formatInteger(item.price, 0, 'WHITESPACE')} + ' Ft'">9 000 Ft</div>
-                                    <!-- Törlés gomb form-mal a Controllerbe -->
                                     <form th:action="@{/kosar/torol/{index}(index=${stat.index})}" method="post">
                                         <button type="submit" class="cart-remove-btn"><i class="bi bi-trash3 me-1"></i>Törlés</button>
                                     </form>
@@ -89,9 +88,13 @@
                                 <span th:text="${#numbers.formatInteger(totalPrice, 0, 'WHITESPACE')} + ' Ft'">0 Ft</span>
                             </div>
 
-                            <button class="btn btn-gold w-100 mt-4 py-2 fs-5 text-uppercase fw-bold" th:disabled="${#lists.isEmpty(cart)}" onclick="alert('Sikeres vásárlás! Köszönjük!'); window.location.href='/fooldal';">
-                                <i class="bi bi-credit-card-fill me-2"></i>Fizetés
-                            </button>
+                            <form th:action="@{/kosar/fizetes}" method="post">
+                                <button type="submit" class="btn btn-gold w-100 mt-4 py-2 fs-5 text-uppercase fw-bold"
+                                        th:disabled="${#lists.isEmpty(cart)}"
+                                        onclick="return confirm('Biztosan megvásárolod a kosárban lévő jegyeket?');">
+                                    <i class="bi bi-credit-card-fill me-2"></i>Fizetés
+                                </button>
+                            </form>
 
                             <div class="text-center mt-3 text-secondary" style="font-size: 0.85rem;">
                                 <i class="bi bi-shield-lock me-1"></i> Biztonságos bankkártyás fizetés
