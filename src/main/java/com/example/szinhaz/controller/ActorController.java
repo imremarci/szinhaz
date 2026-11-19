@@ -8,6 +8,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.Collator;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
 @Controller
 public class ActorController {
 
@@ -19,7 +24,13 @@ public class ActorController {
 
     @GetMapping("/szineszek")
     public String listActorsUser(Model model) {
-        model.addAttribute("actors", actorService.getAllActors());
+        Collator huCollator = Collator.getInstance(Locale.forLanguageTag("hu-HU"));
+
+        List<Actor> sortedActors = actorService.getAllActors().stream()
+                .sorted(Comparator.comparing(Actor::getName, huCollator))
+                .toList();
+
+        model.addAttribute("actors", sortedActors);
         return "szineszek_user";
     }
 
@@ -29,7 +40,13 @@ public class ActorController {
         if (currentUser == null) return "redirect:/bejelentkezes";
         if (!"ADMIN".equals(currentUser.getRole())) return "redirect:/fooldal";
 
-        model.addAttribute("actors", actorService.getAllActors());
+        Collator huCollator = Collator.getInstance(Locale.forLanguageTag("hu-HU"));
+
+        List<Actor> sortedActors = actorService.getAllActors().stream()
+                .sorted(Comparator.comparing(Actor::getName, huCollator))
+                .toList();
+
+        model.addAttribute("actors", sortedActors);
         model.addAttribute("newActor", new Actor());
         return "szineszek_admin";
     }

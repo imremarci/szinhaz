@@ -1,5 +1,6 @@
 package com.example.szinhaz.controller;
 
+import com.example.szinhaz.model.Show;
 import com.example.szinhaz.model.Ticket;
 import com.example.szinhaz.repository.TicketRepository;
 import com.example.szinhaz.service.ShowService;
@@ -8,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,8 +25,13 @@ public class ShowController {
     }
 
     @GetMapping("/eloadasok")
-    public String listShows(Model model) {
-        model.addAttribute("shows", showService.getAllShows());
+    public String eloadasok(Model model) {
+        List<Show> sortedShows = showService.getAllShows().stream()
+                .filter(s -> s.getStartTime() != null)
+                .sorted(Comparator.comparing(Show::getStartTime))
+                .toList();
+
+        model.addAttribute("shows", sortedShows);
         return "eloadasok";
     }
 

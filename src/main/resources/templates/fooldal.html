@@ -75,7 +75,11 @@
 
                     <div class="carousel-inner">
                         <!-- Végigmegyünk a darabokon -->
-                        <div class="carousel-item" th:each="play, iterStat : ${plays}" th:classappend="${iterStat.first} ? 'active' : ''">
+                        <div class="carousel-item"
+                             th:each="play, iterStat : ${plays}"
+                             th:classappend="${iterStat.first} ? 'active' : ''"
+                             th:onclick="|window.location.href='@{/darabok/{id}(id=${play.id})}'|"
+                             style="cursor: pointer;">
                             <div class="carousel-overlay"></div>
                             <!-- Ha van borítóképe, beteszi háttérnek -->
                             <img th:src="${play.coverImageUrl}" class="d-block w-100" style="height: 300px; object-fit: cover;" alt="...">
