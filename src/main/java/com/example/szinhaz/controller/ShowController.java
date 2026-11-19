@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class ShowController {
     public String eloadasok(Model model) {
         List<Show> sortedShows = showService.getAllShows().stream()
                 .filter(s -> s.getStartTime() != null)
+                .filter(s -> s.getStartTime().isAfter(LocalDateTime.now()))
                 .sorted(Comparator.comparing(Show::getStartTime))
                 .toList();
 
