@@ -6,11 +6,11 @@ import com.example.szinhaz.model.Show;
 import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.*;
 import com.example.szinhaz.service.PlayService;
-import com.example.szinhaz.service.ShowService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -22,7 +22,10 @@ public class PlayController {
     private final TicketRepository ticketRepository;
     private final PlayRepository playRepository;
     private final ActorRepository actorRepository;
-    public PlayController(PlayService playService, ShowRepository showRepository, TicketRepository ticketRepository, PlayRepository playRepository, ActorRepository actorRepository) {
+
+    public PlayController(PlayService playService, ShowRepository showRepository,
+                          TicketRepository ticketRepository, PlayRepository playRepository,
+                          ActorRepository actorRepository) {
         this.playService = playService;
         this.showRepository = showRepository;
         this.ticketRepository = ticketRepository;
@@ -30,23 +33,24 @@ public class PlayController {
         this.actorRepository = actorRepository;
     }
 
-    // Felhasználói lista -> szindarabok_user.html
     @GetMapping("/darabok")
     public String listPlaysUser(Model model) {
         model.addAttribute("plays", playService.getAllPlays());
         return "szindarabok_user";
     }
 
-    // Egy darab részletes oldala -> szindarab.html
     @GetMapping("/darabok/{id}")
     public String viewPlayDetails(@PathVariable Long id, Model model) {
         model.addAttribute("play", playService.getPlayById(id));
         return "szindarab";
     }
 
-    // Admin lista -> szindarabok_admin.html
     @GetMapping("/admin/darabok")
-    public String listPlaysAdmin(Model model) {
+    public String listPlaysAdmin(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null) return "redirect:/bejelentkezes";
+        if (!"ADMIN".equals(currentUser.getRole())) return "redirect:/fooldal";
+
         model.addAttribute("plays", playService.getAllPlays());
         model.addAttribute("newPlay", new Play());
         model.addAttribute("actors", actorRepository.findAll());
@@ -56,7 +60,8 @@ public class PlayController {
     @PostMapping("/admin/darabok/mentes")
     public String savePlay(@ModelAttribute Play play,
                            @RequestParam(required = false) List<Long> actorIds,
-                           HttpSession session) {
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
         User currentUser = (User) session.getAttribute("loggedInUser");
         if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
             return "redirect:/fooldal";
@@ -67,7 +72,13 @@ public class PlayController {
             play.setActors(selectedActors);
         }
 
-        playService.savePlay(play);
+        try {
+            playService.savePlay(play);
+            redirectAttributes.addFlashAttribute("success", "Színdarab sikeresen mentve!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
         return "redirect:/admin/darabok";
     }
 
@@ -78,18 +89,14 @@ public class PlayController {
             return "redirect:/fooldal";
         }
 
-        // 1. Megkeressük a színdarabhoz tartozó összes előadást
         List<Show> relatedShows = showRepository.findAll().stream()
                 .filter(s -> s.getPlay() != null && s.getPlay().getId().equals(id))
                 .toList();
 
-        // 2. Töröljük az előadásokhoz tartozó jegyeket, majd magukat az előadásokat
         for (Show show : relatedShows) {
             ticketRepository.deleteAll(ticketRepository.findByShowId(show.getId()));
         }
         showRepository.deleteAll(relatedShows);
-
-        // 3. Most már hiba nélkül törölhető a színdarab
         playRepository.deleteById(id);
 
         return "redirect:/admin/darabok";

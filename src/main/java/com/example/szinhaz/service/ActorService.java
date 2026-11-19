@@ -22,8 +22,14 @@ public class ActorService {
         return actorRepository.findById(id).orElse(null);
     }
 
-    public void saveActor(Actor Actor) {
-        actorRepository.save(Actor);
+    public Actor saveActor(Actor actor) {
+        if (actor.getName() == null || actor.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("A színész neve nem lehet üres!");
+        }
+        if (actor.getRating() < 1.0 || actor.getRating() > 5.0) {
+            throw new IllegalArgumentException("Az értékelésnek 1.0 és 5.0 közé kell esnie!");
+        }
+        return actorRepository.save(actor);
     }
 
     public void deleteActor(Long id) {

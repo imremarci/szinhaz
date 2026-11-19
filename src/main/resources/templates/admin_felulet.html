@@ -32,8 +32,25 @@
             </div>
         </div>
 
+
         <!-- Jobb oldali fő tartalom -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2 d-flex flex-column justify-content-between">
+
+            <div class="top-bar">
+                <h3 class="page-title">Admin felület</h3>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show fw-bold mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Hibaüzenet</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${success}">Sikeres művelet!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
+            </div>
 
             <!-- Felső rész: Dinamikus termek az adatbázisból -->
             <div class="row g-4 mt-1">

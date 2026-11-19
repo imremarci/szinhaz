@@ -3,12 +3,19 @@ package com.example.szinhaz.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(
+        name = "tickets",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"show_id", "row_number", "seat_number"})
+)
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "row_number")
     private int rowNumber;
+
+    @Column(name = "seat_number")
     private int seatNumber;
 
     private int price;
@@ -24,7 +31,7 @@ public class Ticket {
     public Ticket() {
     }
 
-    public Ticket(int rowNumber, int seatNumber, User user, Show show) {
+    public Ticket(int rowNumber, int seatNumber, int price, User user, Show show) {
         this.rowNumber = rowNumber;
         this.seatNumber = seatNumber;
         this.price = price;
@@ -32,51 +39,16 @@ public class Ticket {
         this.show = show;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public int getRowNumber() {
-        return rowNumber;
-    }
-
-    public void setRowNumber(int rowNumber) {
-        this.rowNumber = rowNumber;
-    }
-
-    public int getSeatNumber() {
-        return seatNumber;
-    }
-
-    public void setSeatNumber(int seatNumber) {
-        this.seatNumber = seatNumber;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Show getShow() {
-        return show;
-    }
-
-    public void setShow(Show show) {
-        this.show = show;
-    }
-
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public int getRowNumber() { return rowNumber; }
+    public void setRowNumber(int rowNumber) { this.rowNumber = rowNumber; }
+    public int getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(int seatNumber) { this.seatNumber = seatNumber; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public Show getShow() { return show; }
+    public void setShow(Show show) { this.show = show; }
+    public int getPrice() { return price; }
+    public void setPrice(int price) { this.price = price; }
 }

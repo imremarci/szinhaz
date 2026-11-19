@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.text.Collator;
 import java.util.Comparator;
@@ -52,13 +53,21 @@ public class ActorController {
     }
 
     @PostMapping("/admin/szineszek/mentes")
-    public String saveActor(@ModelAttribute Actor actor, HttpSession session) {
+    public String saveActor(@ModelAttribute Actor actor,
+                            HttpSession session,
+                            RedirectAttributes redirectAttributes) {
         User currentUser = (User) session.getAttribute("loggedInUser");
         if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
             return "redirect:/fooldal";
         }
 
-        actorService.saveActor(actor);
+        try {
+            actorService.saveActor(actor);
+            redirectAttributes.addFlashAttribute("success", "Színész sikeresen mentve!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
         return "redirect:/admin/szineszek";
     }
 }

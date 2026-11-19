@@ -1,27 +1,28 @@
 package com.example.szinhaz.controller;
 
 import com.example.szinhaz.model.CartItem;
-import com.example.szinhaz.model.Room;
-import com.example.szinhaz.model.Ticket;
-import com.example.szinhaz.model.User;
 import com.example.szinhaz.model.Play;
-import com.example.szinhaz.repository.TicketRepository;
-import com.example.szinhaz.repository.UserRepository;
+import com.example.szinhaz.model.Room;
+import com.example.szinhaz.model.Show;
+import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.PlayRepository;
 import com.example.szinhaz.repository.RoomRepository;
 import com.example.szinhaz.repository.ShowRepository;
+import com.example.szinhaz.repository.TicketRepository;
 import com.example.szinhaz.service.PlayService;
 import com.example.szinhaz.service.RoomService;
 import com.example.szinhaz.service.ShowService;
+import com.example.szinhaz.service.TicketService;
+import com.example.szinhaz.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import com.example.szinhaz.model.Show;
-import java.time.LocalDate;
-import org.springframework.format.annotation.DateTimeFormat;
-import java.time.LocalDateTime;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,19 +33,23 @@ public class PageController {
     private final ShowService showService;
     private final PlayService playService;
     private final RoomService roomService;
+    private final TicketService ticketService;
+    private final UserService userService;
     private final TicketRepository ticketRepository;
-    private final UserRepository userRepository;
     private final ShowRepository showRepository;
     private final RoomRepository roomRepository;
     private final PlayRepository playRepository;
 
     public PageController(ShowService showService, PlayService playService, RoomService roomService,
-                          TicketRepository ticketRepository, UserRepository userRepository, ShowRepository showRepository, RoomRepository roomRepository, PlayRepository playRepository) {
+                          TicketService ticketService, UserService userService,
+                          TicketRepository ticketRepository, ShowRepository showRepository,
+                          RoomRepository roomRepository, PlayRepository playRepository) {
         this.showService = showService;
         this.playService = playService;
         this.roomService = roomService;
+        this.ticketService = ticketService;
+        this.userService = userService;
         this.ticketRepository = ticketRepository;
-        this.userRepository = userRepository;
         this.showRepository = showRepository;
         this.roomRepository = roomRepository;
         this.playRepository = playRepository;
@@ -67,14 +72,12 @@ public class PageController {
         });
         model.addAttribute("rooms", rooms);
 
-        // Csak a mai napra eső előadások szűrése
         LocalDate today = LocalDate.now();
         List<Show> todayShows = showService.getAllShows().stream()
                 .filter(s -> s.getStartTime() != null && s.getStartTime().toLocalDate().equals(today))
                 .toList();
 
         model.addAttribute("shows", todayShows);
-
         return "fooldal";
     }
 
@@ -106,7 +109,6 @@ public class PageController {
             seatInfo.append(parts[0]).append(". sor, ").append(parts[1]).append(". szék; ");
         }
 
-        // Átadjuk a nyers selectedSeats stringet is a CartItem-nek
         cart.add(new CartItem(showService.getShowById(showId), seatInfo.toString(), selectedSeats, quantity, price));
         return "redirect:/kosar";
     }
@@ -120,27 +122,32 @@ public class PageController {
     }
 
     @PostMapping("/kosar/fizetes")
-    public String checkout(@ModelAttribute("cart") List<CartItem> cart, HttpSession session) {
+    public String checkout(@ModelAttribute("cart") List<CartItem> cart,
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
         User currentUser = (User) session.getAttribute("loggedInUser");
-
-        // Ha nincs bejelentkezve, átirányítjuk a bejelentkezésre
         if (currentUser == null) {
             return "redirect:/bejelentkezes";
         }
 
-        for (CartItem item : cart) {
-            String[] seats = item.getRawSeats().split(",");
-            for (String seat : seats) {
-                String[] parts = seat.split("-");
-                int row = Integer.parseInt(parts[0]);
-                int seatNum = Integer.parseInt(parts[1]);
+        try {
+            for (CartItem item : cart) {
+                String[] seats = item.getRawSeats().split(",");
+                for (String seat : seats) {
+                    String[] parts = seat.split("-");
+                    int row = Integer.parseInt(parts[0]);
+                    int seatNum = Integer.parseInt(parts[1]);
 
-                ticketRepository.save(new Ticket(row, seatNum,currentUser, item.getShow()));
+                    ticketService.buyTicket(item.getShow(), currentUser, row, seatNum, 4500);
+                }
             }
+            cart.clear();
+            redirectAttributes.addFlashAttribute("success", "Sikeres jegyvásárlás!");
+            return "redirect:/profil";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/kosar";
         }
-
-        cart.clear();
-        return "redirect:/eloadasok";
     }
 
     @GetMapping("/bejelentkezes")
@@ -153,19 +160,18 @@ public class PageController {
                                @RequestParam String password,
                                HttpSession session,
                                Model model) {
-        var userOpt = userRepository.findByName(name);
+        try {
+            User user = userService.login(name, password);
+            session.setAttribute("loggedInUser", user);
 
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(password)) {
-            session.setAttribute("loggedInUser", userOpt.get());
-
-            if ("ADMIN".equals(userOpt.get().getRole())) {
+            if ("ADMIN".equals(user.getRole())) {
                 return "redirect:/admin";
             }
             return "redirect:/fooldal";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+            return "bejelentkezes";
         }
-
-        model.addAttribute("error", "Hibás név vagy jelszó!");
-        return "bejelentkezes";
     }
 
     @GetMapping("/regisztracio")
@@ -177,17 +183,16 @@ public class PageController {
     public String processRegister(@RequestParam String name,
                                   @RequestParam String password,
                                   Model model) {
-        if (userRepository.findByName(name).isPresent()) {
-            model.addAttribute("error", "Ezzel a névvel már regisztráltak!");
+        try {
+            User newUser = new User();
+            newUser.setName(name);
+            newUser.setPassword(password);
+            userService.registerUser(newUser);
+            return "redirect:/bejelentkezes?sikeresReg";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            model.addAttribute("error", e.getMessage());
             return "regisztracio";
         }
-
-        User newUser = new User();
-        newUser.setName(name);
-        newUser.setPassword(password);
-
-        userRepository.save(newUser);
-        return "redirect:/bejelentkezes?sikeresReg";
     }
 
     @GetMapping("/kijelentkezes")
@@ -195,6 +200,7 @@ public class PageController {
         session.removeAttribute("loggedInUser");
         return "redirect:/fooldal";
     }
+
     @GetMapping("/profil")
     public String userProfile(HttpSession session, Model model) {
         User currentUser = (User) session.getAttribute("loggedInUser");
@@ -203,11 +209,10 @@ public class PageController {
         }
 
         model.addAttribute("user", currentUser);
-        model.addAttribute("tickets", ticketRepository.findByUserId(currentUser.getId()));
+        model.addAttribute("tickets", ticketService.getTicketsByUser(currentUser.getId()));
         return "profil";
     }
 
-    // ADMIN FELÜLET MEGJELENÍTÉSE (adatbázisból)
     @GetMapping("/admin")
     public String adminDashboard(HttpSession session, Model model) {
         User currentUser = (User) session.getAttribute("loggedInUser");
@@ -233,12 +238,12 @@ public class PageController {
         return "admin_felulet";
     }
 
-    // ÚJ ELŐADÁS MENTÉSE AZ ADATBÁZISBA
     @PostMapping("/admin/eloadas/hozzaad")
     public String addShow(@RequestParam Long roomId,
                           @RequestParam Long playId,
                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-                          HttpSession session) {
+                          HttpSession session,
+                          RedirectAttributes redirectAttributes) {
         User currentUser = (User) session.getAttribute("loggedInUser");
         if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
             return "redirect:/fooldal";
@@ -247,14 +252,16 @@ public class PageController {
         Room room = roomRepository.findById(roomId).orElse(null);
         Play play = playRepository.findById(playId).orElse(null);
 
-        if (room != null && play != null) {
-            showRepository.save(new Show(startTime, room, play));
+        try {
+            showService.saveShow(new Show(startTime, room, play));
+            redirectAttributes.addFlashAttribute("success", "Előadás sikeresen rögzítve!");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return "redirect:/admin";
     }
 
-    // ELŐADÁS TÖRLÉSE AZ ADATBÁZISBÓL
     @PostMapping("/admin/eloadas/torol/{id}")
     public String deleteShow(@PathVariable Long id, HttpSession session) {
         User currentUser = (User) session.getAttribute("loggedInUser");
@@ -262,7 +269,6 @@ public class PageController {
             return "redirect:/fooldal";
         }
 
-        // Ha már vettek rá jegyet, előbb a jegyeket töröljük, hogy ne legyen adatbázis hiba
         ticketRepository.deleteAll(ticketRepository.findByShowId(id));
         showRepository.deleteById(id);
 
