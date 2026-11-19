@@ -195,6 +195,17 @@ public class PageController {
         session.removeAttribute("loggedInUser");
         return "redirect:/fooldal";
     }
+    @GetMapping("/profil")
+    public String userProfile(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null) {
+            return "redirect:/bejelentkezes";
+        }
+
+        model.addAttribute("user", currentUser);
+        model.addAttribute("tickets", ticketRepository.findByUserId(currentUser.getId()));
+        return "profil";
+    }
 
     // ADMIN FELÜLET MEGJELENÍTÉSE (adatbázisból)
     @GetMapping("/admin")
