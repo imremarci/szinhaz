@@ -78,23 +78,16 @@
                 <!-- IDŐSÁV (Adatbázisból generálva!) -->
                 <h4 class="section-title">Mai Műsor (Idősáv)</h4>
 
-                <div class="time-scale">
-                    <div class="flex-fill">10:00</div>
-                    <div class="flex-fill">11:00</div>
-                    <div class="flex-fill">12:00</div>
-                    <div class="flex-fill">13:00</div>
-                    <div class="flex-fill">14:00</div>
-                    <div class="flex-fill">15:00</div>
-                    <div class="flex-fill">16:00</div>
-                    <div class="flex-fill">17:00</div>
-                    <div class="flex-fill">18:00</div>
-                    <div class="flex-fill">19:00</div>
-                    <div class="flex-fill">20:00</div>
-                    <div class="flex-fill">21:00</div>
-                    <div class="flex-fill">22:00</div>
-                </div>
-
                 <div class="timeline-container">
+                    <div class="timeline-row border-0 pb-2 mb-2">
+                        <div class="timeline-label"></div>
+                        <div class="position-relative flex-grow-1 text-secondary small fw-bold" style="height: 20px;">
+                            <span th:each="h : ${#numbers.sequence(10, 22)}"
+                                  th:text="${h} + ':00'"
+                                  th:style="'position: absolute; left: ' + ${(h - 10) * 8.3333} + '%; transform: translateX(-50%);'">
+                            </span>
+                        </div>
+                    </div>
 
                     <!-- Végigmegyünk az adatbázisban lévő ÖSSZES termen -->
                     <div class="timeline-row" th:each="room : ${rooms}">
