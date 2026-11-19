@@ -1,18 +1,33 @@
 package com.example.szinhaz.controller;
 
+import com.example.szinhaz.model.Actor;
 import com.example.szinhaz.model.Play;
+import com.example.szinhaz.model.Show;
+import com.example.szinhaz.model.User;
+import com.example.szinhaz.repository.*;
 import com.example.szinhaz.service.PlayService;
+import com.example.szinhaz.service.ShowService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 public class PlayController {
 
     private final PlayService playService;
-
-    public PlayController(PlayService playService) {
+    private final ShowRepository showRepository;
+    private final TicketRepository ticketRepository;
+    private final PlayRepository playRepository;
+    private final ActorRepository actorRepository;
+    public PlayController(PlayService playService, ShowRepository showRepository, TicketRepository ticketRepository, PlayRepository playRepository, ActorRepository actorRepository) {
         this.playService = playService;
+        this.showRepository = showRepository;
+        this.ticketRepository = ticketRepository;
+        this.playRepository = playRepository;
+        this.actorRepository = actorRepository;
     }
 
     // Felhasználói lista -> szindarabok_user.html
@@ -34,20 +49,49 @@ public class PlayController {
     public String listPlaysAdmin(Model model) {
         model.addAttribute("plays", playService.getAllPlays());
         model.addAttribute("newPlay", new Play());
+        model.addAttribute("actors", actorRepository.findAll());
         return "szindarabok_admin";
     }
 
-    // Új darab mentése adminból
     @PostMapping("/admin/darabok/mentes")
-    public String savePlay(@ModelAttribute Play play) {
+    public String savePlay(@ModelAttribute Play play,
+                           @RequestParam(required = false) List<Long> actorIds,
+                           HttpSession session) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
+            return "redirect:/fooldal";
+        }
+
+        if (actorIds != null && !actorIds.isEmpty()) {
+            List<Actor> selectedActors = actorRepository.findAllById(actorIds);
+            play.setActors(selectedActors);
+        }
+
         playService.savePlay(play);
         return "redirect:/admin/darabok";
     }
 
-    // Darab törlése adminból
     @PostMapping("/admin/darabok/torles/{id}")
-    public String deletePlay(@PathVariable Long id) {
-        playService.deletePlay(id);
+    public String deletePlay(@PathVariable Long id, HttpSession session) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
+            return "redirect:/fooldal";
+        }
+
+        // 1. Megkeressük a színdarabhoz tartozó összes előadást
+        List<Show> relatedShows = showRepository.findAll().stream()
+                .filter(s -> s.getPlay() != null && s.getPlay().getId().equals(id))
+                .toList();
+
+        // 2. Töröljük az előadásokhoz tartozó jegyeket, majd magukat az előadásokat
+        for (Show show : relatedShows) {
+            ticketRepository.deleteAll(ticketRepository.findByShowId(show.getId()));
+        }
+        showRepository.deleteAll(relatedShows);
+
+        // 3. Most már hiba nélkül törölhető a színdarab
+        playRepository.deleteById(id);
+
         return "redirect:/admin/darabok";
     }
 }

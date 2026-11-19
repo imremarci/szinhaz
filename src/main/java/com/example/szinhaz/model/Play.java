@@ -2,6 +2,9 @@ package com.example.szinhaz.model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class Play {
     @Id
@@ -42,4 +45,19 @@ public class Play {
     public void setDescription(String description) { this.description = description; }
     public String getCoverImageUrl() { return coverImageUrl; }
     public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+    @ManyToMany
+    @JoinTable(
+            name = "play_actors",
+            joinColumns = @JoinColumn(name = "play_id"),
+            inverseJoinColumns = @JoinColumn(name = "actor_id")
+    )
+    private List<Actor> actors = new ArrayList<>();
+
+    public List<Actor> getActors() {
+        return actors;
+    }
+
+    public void setActors(List<Actor> actors) {
+        this.actors = actors;
+    }
 }
