@@ -13,13 +13,15 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ActorRepository actorRepository;
     private final RoomRepository roomRepository;
     private final ShowRepository showRepository;
+    private final UserRepository userRepository;
 
     public DatabaseSeeder(PlayRepository playRepository, ActorRepository actorRepository,
-                          RoomRepository roomRepository, ShowRepository showRepository) {
+                          RoomRepository roomRepository, ShowRepository showRepository, UserRepository userRepository) {
         this.playRepository = playRepository;
         this.actorRepository = actorRepository;
         this.roomRepository = roomRepository;
         this.showRepository = showRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -57,6 +59,14 @@ public class DatabaseSeeder implements CommandLineRunner {
             showRepository.save(eloadas1);
             showRepository.save(eloadas2);
             showRepository.save(eloadas3);
+
+            if (userRepository.findByName("admin").isEmpty()) {
+                User admin = new User();
+                admin.setName("admin");
+                admin.setPassword("admin123"); // nyugodtan írd át másra
+                admin.setRole("ADMIN");
+                userRepository.save(admin);
+            }
         }
     }
 }

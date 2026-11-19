@@ -145,10 +145,14 @@ public class PageController {
 
         if (userOpt.isPresent() && userOpt.get().getPassword().equals(password)) {
             session.setAttribute("loggedInUser", userOpt.get());
+
+            if ("ADMIN".equals(userOpt.get().getRole())) {
+                return "redirect:/admin";
+            }
             return "redirect:/fooldal";
         }
 
-        model.addAttribute("error", "Hibás email cím vagy jelszó!");
+        model.addAttribute("error", "Hibás név vagy jelszó!");
         return "bejelentkezes";
     }
 
@@ -181,7 +185,20 @@ public class PageController {
     }
 
     @GetMapping("/admin")
-    public String adminDashboard() {
+    public String adminDashboard(HttpSession session) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+
+        // 1. Ha nincs bejelentkezve -> irány a bejelentkezés
+        if (currentUser == null) {
+            return "redirect:/bejelentkezes";
+        }
+
+        // 2. Ha be van jelentkezve, de NEM admin -> irány a főoldal
+        if (!"ADMIN".equals(currentUser.getRole())) {
+            return "redirect:/fooldal";
+        }
+
+        // 3. Csak ha bejelentkezett ADMIN -> beengedjük
         return "admin_felulet";
     }
 }
