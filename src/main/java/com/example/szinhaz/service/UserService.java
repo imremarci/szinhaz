@@ -16,6 +16,13 @@ public class UserService {
     }
 
     public User registerUser(User user) {
+        if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
+            throw new IllegalArgumentException("A teljes név megadása kötelező!");
+        }
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()
+                || !user.getEmail().contains("@") || !user.getEmail().contains(".")) {
+            throw new IllegalArgumentException("Érvényes e-mail cím megadása kötelező!");
+        }
         if (user.getName() == null || user.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("A felhasználónév megadása kötelező!");
         }
@@ -27,11 +34,19 @@ public class UserService {
         }
 
         String cleanName = user.getName().trim();
+        String cleanEmail = user.getEmail().trim().toLowerCase();
+
         if (userRepository.findByName(cleanName).isPresent()) {
             throw new IllegalStateException("Ez a felhasználónév már foglalt!");
         }
+        if (userRepository.findByEmail(cleanEmail).isPresent()) {
+            throw new IllegalStateException("Ezzel az e-mail címmel már regisztráltak!");
+        }
 
+        user.setFullName(user.getFullName().trim());
+        user.setEmail(cleanEmail);
         user.setName(cleanName);
+
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("USER");
         }

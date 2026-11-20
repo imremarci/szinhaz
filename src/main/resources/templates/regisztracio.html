@@ -13,7 +13,7 @@
     <h1 class="theater-title">Zsiráf Színház</h1>
     <div class="page-subtitle">Csatlakozz a közönségünkhöz!</div>
 
-    <!-- Hibaüzenet, ha már foglalt a név -->
+    <!-- Hibaüzenet -->
     <div th:if="${error}" class="alert alert-danger text-center py-2 mb-3" th:text="${error}"></div>
 
     <form th:action="@{/regisztracio}" method="post">
@@ -23,13 +23,22 @@
         </div>
 
         <div class="mb-4">
+            <label for="email" class="form-label"><i class="bi bi-envelope-fill me-2"></i>E-mail cím</label>
+            <input type="email" class="form-control" id="email" name="email"
+                   placeholder="Pl.: kovacs.janos@email.hu"
+                   pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}"
+                   title="Adj meg egy teljes e-mail címet ponttal és végződéssel (pl.: kovacs.janos@email.hu)!"
+                   required>
+        </div>
+
+        <div class="mb-4">
             <label for="username" class="form-label"><i class="bi bi-person-fill me-2"></i>Felhasználónév</label>
-            <input type="text" class="form-control" id="username" name="name" placeholder="Válassz egy egyedi nevet" required>
+            <input type="text" class="form-control" id="username" name="name" placeholder="Válassz egy egyedi nevet" minlength="3" required>
         </div>
 
         <div class="mb-4">
             <label for="password" class="form-label"><i class="bi bi-lock-fill me-2"></i>Jelszó</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" minlength="4" required>
         </div>
 
         <button type="submit" class="btn btn-gold w-100">Regisztrálok</button>
@@ -42,5 +51,28 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const emailInput = document.getElementById('email');
+
+    emailInput.addEventListener('invalid', function () {
+        const val = this.value.trim();
+
+        if (val === '') {
+            this.setCustomValidity('Az e-mail cím megadása kötelező!');
+        } else if (!val.includes('@')) {
+            this.setCustomValidity('Az e-mail címnek tartalmaznia kell egy „@” jelet!');
+        } else if (val.endsWith('@')) {
+            this.setCustomValidity('Add meg a „@” utáni részt is (pl.: email.hu)!');
+        } else if (val.endsWith('.')) {
+            this.setCustomValidity('Add meg a pont utáni végződést (pl.: hu, com)!');
+        } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(val)) {
+            this.setCustomValidity('Adj meg egy teljes e-mail címet ponttal és végződéssel (pl.: kovacs.janos@email.hu)!');
+        }
+    });
+
+    emailInput.addEventListener('input', function () {
+        this.setCustomValidity('');
+    });
+</script>
 </body>
 </html>

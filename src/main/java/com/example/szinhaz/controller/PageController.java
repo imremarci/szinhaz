@@ -180,13 +180,18 @@ public class PageController {
     }
 
     @PostMapping("/regisztracio")
-    public String processRegister(@RequestParam String name,
+    public String processRegister(@RequestParam String fullName,
+                                  @RequestParam String email,
+                                  @RequestParam String name,
                                   @RequestParam String password,
                                   Model model) {
         try {
             User newUser = new User();
+            newUser.setFullName(fullName);
+            newUser.setEmail(email);
             newUser.setName(name);
             newUser.setPassword(password);
+
             userService.registerUser(newUser);
             return "redirect:/bejelentkezes?sikeresReg";
         } catch (IllegalArgumentException | IllegalStateException e) {

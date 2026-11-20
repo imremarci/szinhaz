@@ -45,18 +45,26 @@
                 </div>
             </div>
 
-            <!-- FELHASZNÁLÓ ADATAI -->
-            <div class="card bg-dark border-warning mb-4">
-                <div class="card-body d-flex align-items-center gap-3 p-4">
-                    <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center"
-                         style="width: 64px; height: 64px;">
-                        <i class="bi bi-person-fill fs-1"></i>
-                    </div>
-                    <div>
-                        <small class="text-secondary text-uppercase fw-bold">Bejelentkezett felhasználó</small>
-                        <h2 class="m-0 fw-bold" style="color: var(--theater-gold);" th:text="${user.name}">Felhasználónév</h2>
-                    </div>
-                </div>
+            <div class="card bg-dark text-light border-warning p-4 mb-4">
+                <h5 class="text-uppercase text-warning fw-bold mb-3">Bejelentkezett felhasználó</h5>
+
+                <p class="mb-2">
+                    <i class="bi bi-person-vcard-fill text-warning me-2"></i>
+                    <strong>Teljes név:</strong>
+                    <span th:text="${user.fullName != null ? user.fullName : 'Nincs megadva'}">Kovács János</span>
+                </p>
+
+                <p class="mb-2">
+                    <i class="bi bi-person-fill text-warning me-2"></i>
+                    <strong>Felhasználónév:</strong>
+                    <span th:text="${user.name}">kovacsj</span>
+                </p>
+
+                <p class="mb-0">
+                    <i class="bi bi-envelope-fill text-warning me-2"></i>
+                    <strong>E-mail cím:</strong>
+                    <span th:text="${user.email != null ? user.email : 'Nincs megadva'}">kovacs.janos@email.hu</span>
+                </p>
             </div>
 
             <!-- MEGVÁSÁROLT JEGYEK -->

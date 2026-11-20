@@ -15,13 +15,19 @@ public class User {
     @Column(nullable = false)
     private String password;
     private String role = "USER";
+    private String fullName;
+
+    @Column(unique = true)
+    private String email;
 
     public User() {
     }
 
-    public User(String name, String password) {
+    public User(String name, String password, String fullName, String email) {
         this.name = name;
         this.password = password;
+        this.fullName = fullName;
+        this.email = email;
     }
 
     public Long getId() {
@@ -54,5 +60,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
