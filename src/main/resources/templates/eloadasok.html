@@ -12,29 +12,33 @@
 
 <div class="container-fluid p-0">
     <div class="row g-0">
-        
+
         <!-- BAL OLDALI MENÜ -->
         <div class="col-12 col-md-3 col-lg-2">
-            <div class="sidebar">
-                <h1>Zsiráf Színház</h1>
+            <div class="sidebar d-flex flex-column" style="min-height: 100vh;">                <h1>Zsiráf Színház</h1>
                 <div class="sidebar-menu mt-4">
                     <h2 th:onclick="|window.location.href='@{/fooldal}'|">Főoldal</h2>
                     <h2 th:onclick="|window.location.href='@{/darabok}'|">Színdarabok</h2>
                     <h2 th:onclick="|window.location.href='@{/szineszek}'|">Színészek</h2>
                     <h2 class="active" th:onclick="|window.location.href='@{/eloadasok}'|">Előadások</h2>
                 </div>
+                <div th:if="${session.loggedInUser != null}" class="mt-auto p-3 border-top border-secondary">
+                    <a th:href="@{/kijelentkezes}" class="btn btn-outline-danger w-100 fw-bold">
+                        <i class="bi bi-box-arrow-left me-2"></i>Kijelentkezés
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
-            
+
             <div class="top-bar">
                 <h3 class="page-title">Műsorfüzet</h3>
             </div>
 
             <div class="px-4 pb-5">
-                
+
                 <!-- ELŐADÁSOK LISTÁJA AZ ADATBÁZISBÓL -->
                 <div class="schedule-list">
 
@@ -46,7 +50,7 @@
                             <div class="sch-weekday" th:text="${#temporals.format(show.startTime, 'EEEE')}">Csütörtök</div>
                             <div class="sch-time"><i class="bi bi-clock"></i> <span th:text="${#temporals.format(show.startTime, 'HH:mm')}">19:00</span></div>
                         </div>
-                        
+
                         <!-- Részletek -->
                         <div class="schedule-details">
                             <div class="sch-title" th:text="${show.play.title}">A dzsungel könyve</div>
