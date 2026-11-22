@@ -121,7 +121,7 @@
                                              th:title="${show.play.title}">
 
                                             <span class="play-title"
-                                                  th:text="${show.play.title} + ' (' + ${#temporals.format(show.startTime, 'HH:mm')} + '-' + ${#temporals.format(show.startTime.plusMinutes(show.play.durationMinutes != null ? show.play.durationMinutes : 120), 'HH:mm')} + ')'">
+                                                  th:text="${show.play.title} + ' (' + ${#temporals.format(show.startTime, 'HH:mm')} + '-' + ${#temporals.format(show.startTime.plusMinutes(duration), 'HH:mm')} + ')'">
                                             </span>
 
                                             <form th:action="@{/admin/eloadas/torol/{id}(id=${show.id})}" method="post" style="display: inline;">
