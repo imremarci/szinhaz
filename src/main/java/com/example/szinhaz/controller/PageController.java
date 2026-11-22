@@ -15,10 +15,12 @@ import com.example.szinhaz.service.ShowService;
 import com.example.szinhaz.service.TicketService;
 import com.example.szinhaz.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -97,19 +99,38 @@ public class PageController {
 
     @PostMapping("/kosar/hozzaad")
     public String addToCart(@RequestParam Long showId,
-                            @RequestParam String selectedSeats,
-                            @ModelAttribute("cart") List<CartItem> cart) {
-        String[] seats = selectedSeats.split(",");
-        int quantity = seats.length;
-        int price = quantity * 4500;
-
-        StringBuilder seatInfo = new StringBuilder();
-        for (String seat : seats) {
-            String[] parts = seat.split("-");
-            seatInfo.append(parts[0]).append(". sor, ").append(parts[1]).append(". szék; ");
+                            @RequestParam(required = false) String selectedSeats,
+                            @ModelAttribute("cart") List<CartItem> cart,
+                            RedirectAttributes redirectAttributes) {
+        Show show = showService.getShowById(showId);
+        if (show == null) {
+            redirectAttributes.addFlashAttribute("error", "A kiválasztott előadás nem található!");
+            return "redirect:/eloadasok";
+        }
+        if (selectedSeats == null || selectedSeats.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Nem választottál ki egyetlen széket sem!");
+            return "redirect:/eloadas/" + showId;
         }
 
-        cart.add(new CartItem(showService.getShowById(showId), seatInfo.toString(), selectedSeats, quantity, price));
+        String[] seats = selectedSeats.split(",");
+        StringBuilder seatInfo = new StringBuilder();
+        try {
+            for (String seat : seats) {
+                String[] parts = seat.trim().split("-");
+                if (parts.length != 2) throw new IllegalArgumentException();
+                int row = Integer.parseInt(parts[0]);
+                int seatNum = Integer.parseInt(parts[1]);
+                if (row <= 0 || seatNum <= 0) throw new IllegalArgumentException();
+                seatInfo.append(row).append(". sor, ").append(seatNum).append(". szék; ");
+            }
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "Érvénytelen székválasztás!");
+            return "redirect:/eloadas/" + showId;
+        }
+
+        int quantity = seats.length;
+        int price = quantity * 4500;
+        cart.add(new CartItem(show, seatInfo.toString(), selectedSeats, quantity, price));
         return "redirect:/kosar";
     }
 
@@ -130,26 +151,27 @@ public class PageController {
             return "redirect:/bejelentkezes";
         }
 
-        try {
-            for (CartItem item : cart) {
-                String[] seats = item.getRawSeats().split(",");
-                for (String seat : seats) {
-                    String[] parts = seat.split("-");
-                    int row = Integer.parseInt(parts[0]);
-                    int seatNum = Integer.parseInt(parts[1]);
+        // 10.1 – Üres kosár ellenőrzése
+        if (cart == null || cart.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "A kosarad üres! Előbb válassz ki legalább egy jegyet.");
+            return "redirect:/kosar";
+        }
 
-                    ticketService.buyTicket(item.getShow(), currentUser, row, seatNum, 4500);
-                }
-            }
+        try {
+            // 1.2 – Teljes kosár mentése egyetlen tranzakcióban
+            ticketService.checkoutCart(cart, currentUser);
             cart.clear();
             redirectAttributes.addFlashAttribute("success", "Sikeres jegyvásárlás!");
             return "redirect:/profil";
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/kosar";
+        } catch (DataIntegrityViolationException e) {
+            // 4.1 – Egyidejű foglalás esetén ne 500-as hiba legyen
+            redirectAttributes.addFlashAttribute("error", "Az egyik kiválasztott széket időközben már lefoglalták! Kérjük, válassz másik helyet.");
+            return "redirect:/kosar";
         }
     }
-
     @GetMapping("/bejelentkezes")
     public String login() {
         return "bejelentkezes";
@@ -201,8 +223,9 @@ public class PageController {
     }
 
     @GetMapping("/kijelentkezes")
-    public String logout(HttpSession session) {
-        session.removeAttribute("loggedInUser");
+    public String logout(HttpSession session, SessionStatus sessionStatus) {
+        sessionStatus.setComplete();
+        session.invalidate();
         return "redirect:/fooldal";
     }
 
@@ -219,10 +242,14 @@ public class PageController {
     }
 
     @GetMapping("/admin")
-    public String adminDashboard(HttpSession session, Model model) {
+    public String adminDashboard(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            HttpSession session, Model model) {
         User currentUser = (User) session.getAttribute("loggedInUser");
         if (currentUser == null) return "redirect:/bejelentkezes";
         if (!"ADMIN".equals(currentUser.getRole())) return "redirect:/fooldal";
+
+        LocalDate selectedDate = (date != null) ? date : LocalDate.now();
 
         List<Room> rooms = roomService.getAllRooms();
         rooms.sort((r1, r2) -> {
@@ -231,14 +258,14 @@ public class PageController {
             return r1.getName().compareTo(r2.getName());
         });
 
-        LocalDate today = LocalDate.now();
-        List<Show> todayShows = showService.getAllShows().stream()
-                .filter(s -> s.getStartTime() != null && s.getStartTime().toLocalDate().equals(today))
+        List<Show> dayShows = showService.getAllShows().stream()
+                .filter(s -> s.getStartTime() != null && s.getStartTime().toLocalDate().equals(selectedDate))
                 .toList();
 
         model.addAttribute("rooms", rooms);
         model.addAttribute("plays", playService.getAllPlays());
-        model.addAttribute("shows", todayShows);
+        model.addAttribute("shows", dayShows);
+        model.addAttribute("selectedDate", selectedDate);
 
         return "admin_felulet";
     }

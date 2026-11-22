@@ -34,6 +34,9 @@ public class PlayService {
         if (play.getDurationMinutes() < 15 || play.getDurationMinutes() > 360) {
             throw new IllegalArgumentException("A színdarab hossza 15 és 360 perc között lehet!");
         }
+        if (play.getDurationMinutes() == null || play.getDurationMinutes() <= 0) {
+            throw new IllegalArgumentException("Az előadás időtartama kötelező és pozitív szám kell legyen!");
+        }
         if (play.getReleaseYear() < 1800 || play.getReleaseYear() > LocalDate.now().getYear() + 5) {
             throw new IllegalArgumentException("Érvénytelen bemutató év!");
         }

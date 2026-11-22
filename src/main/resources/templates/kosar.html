@@ -29,6 +29,17 @@
         <!-- JOBB OLDALI FŐ TARTALOM -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
 
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show fw-bold mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Hibaüzenet</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${success}">Sikeres művelet!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
+            </div>
+
             <div class="top-bar">
                 <h3 class="page-title m-0"><i class="bi bi-cart3 me-2"></i>Kosaram</h3>
                 <a href="/eloadasok" th:href="@{/eloadasok}" class="text-decoration-none">
