@@ -33,7 +33,29 @@
 
         <!-- JOBB OLDALI FŐ TARTALOM (Offset pótolva!) -->
         <div class="col-12 col-md-9 col-lg-10 offset-md-3 offset-lg-2">
-            
+            <div class="top-bar d-flex justify-content-end align-items-center">
+                <div class="d-flex align-items-center justify-content-end gap-3 px-4 py-3">
+                    <!-- Ha NINCS bejelentkezve -->
+                    <a th:if="${session.loggedInUser == null}" th:href="@{/bejelentkezes}" class="btn btn-gold fw-bold">
+                        <i class="bi bi-person-fill me-1"></i> BEJELENTKEZÉS
+                    </a>
+
+                    <!-- Ha BE VAN jelentkezve -->
+                    <a th:if="${session.loggedInUser != null}" th:href="@{/profil}"
+                       class="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center"
+                       style="width: 42px; height: 42px;"
+                       th:title="${session.loggedInUser.name} + ' profilja'">
+                        <i class="bi bi-person-fill fs-5"></i>
+                    </a>
+
+                    <!-- Kosár ikon -->
+                    <a th:href="@{/kosar}" class="btn btn-outline-warning d-flex align-items-center justify-content-center"
+                       style="width: 42px; height: 42px;" title="Kosár">
+                        <i class="bi bi-cart3 fs-5"></i>
+                    </a>
+                </div>
+            </div>
+
             <div class="top-bar">
                 <h3 class="page-title">Műsoron lévő darabjaink</h3>
             </div>
