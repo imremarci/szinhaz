@@ -10,6 +10,7 @@ public class Actor {
 
     private String name;
     private double rating;
+    @Column(columnDefinition = "TEXT")
     private String profileImageUrl;
 
     public Actor() {

@@ -16,8 +16,9 @@ public class Play {
     private Integer durationMinutes;
     private Integer releaseYear;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String description;
+    @Column(columnDefinition = "TEXT")
     private String coverImageUrl;
 
     public Play() {}
