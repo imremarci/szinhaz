@@ -15,6 +15,7 @@
     <description>Színház Backend</description>
     <properties>
         <java.version>17</java.version>
+        <byte-buddy.version>1.17.5</byte-buddy.version>
     </properties>
     <dependencies>
         <!-- 1. Spring Web: A webes kiszolgáló (Tomcat) és a REST API miatt -->
