@@ -440,27 +440,30 @@ body.auth-body {
 .btn-close-white {
     filter: invert(1) grayscale(100%) brightness(200%);
 }
-/* --- TERMEK ÉS SZÍNPAD KÁRTYÁK --- */
+/* --- /* --- TERMEK ÉS SZÍNPAD KÁRTYÁK --- */
 .room-card {
     border: 2px solid #333;
-    height: 290px;
+    height: 300px;
     background-color: var(--theater-gray);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 0.35rem;
     padding: 1.2rem;
     position: relative;
     overflow: hidden;
     border-radius: 10px;
 }
+
 .room-card:hover {
     transform: translateY(-5px);
     border-color: var(--theater-gold);
     box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
 }
+
 .room-card h4 {
     color: var(--theater-gold);
     text-transform: uppercase;
@@ -471,6 +474,7 @@ body.auth-body {
 .stage {
     width: 80%;
     height: 32px;
+    flex-shrink: 0;
     background: linear-gradient(180deg, #4a0000 0%, #1a0000 100%);
     color: var(--theater-gold);
     font-size: 0.75rem;
@@ -483,60 +487,9 @@ body.auth-body {
     border-bottom: 3px solid #aa8c2c;
     box-shadow: 0 8px 15px rgba(0,0,0,0.5);
     transition: all 0.4s;
-    margin-bottom: 15px;
-}
-.room-card:hover .stage {
-    background: linear-gradient(180deg, var(--theater-red) 0%, #4a0000 100%);
-    border-bottom-color: var(--theater-gold);
-    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
-    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+    margin-bottom: 1.25rem; /* távolság a nézőtértől */
 }
 
-/* --- TERMEK ÉS SZÍNPAD KÁRTYÁK --- */
-.room-card {
-    border: 2px solid #333;
-    height: 290px;
-    background-color: var(--theater-gray);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.2rem;
-    position: relative;
-    overflow: hidden;
-    border-radius: 10px;
-}
-.room-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--theater-gold);
-    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
-}
-.room-card h4 {
-    color: var(--theater-gold);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Színpad elem */
-.stage {
-    width: 80%;
-    height: 32px;
-    background: linear-gradient(180deg, #4a0000 0%, #1a0000 100%);
-    color: var(--theater-gold);
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0 0 50% 50% / 0 0 100% 100%;
-    border-bottom: 3px solid #aa8c2c;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.5);
-    transition: all 0.4s;
-    margin-bottom: 15px;
-}
 .room-card:hover .stage {
     background: linear-gradient(180deg, var(--theater-red) 0%, #4a0000 100%);
     border-bottom-color: var(--theater-gold);
@@ -550,6 +503,8 @@ body.auth-body {
     flex-direction: column;
     gap: 6px;
     align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 .seat-row {
     display: flex;
@@ -957,6 +912,8 @@ body.auth-body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
     overflow-x: auto;
 }
 
@@ -976,7 +933,7 @@ body.auth-body {
     border-radius: 0 0 50px 50px;
     border-bottom: 3px solid var(--theater-gold);
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    margin-bottom: 3rem;
+    margin-bottom: 0;
 }
 
 .seat-large:hover:not(.taken) {
