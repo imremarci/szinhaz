@@ -38,7 +38,12 @@
 
         <div class="mb-4">
             <label for="password" class="form-label"><i class="bi bi-lock-fill me-2"></i>Jelszó</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" minlength="4" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Pl.: Jelszo123!"
+                   minlength="8"
+                   pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}"
+                   title="Legalább 8 karakter, benne kisbetű, nagybetű és szám. Írásjel opcionális."
+                   required>
+            <div class="form-text text-secondary">Legalább 8 karakter, benne kisbetű, nagybetű és szám. Írásjel opcionális.</div>
         </div>
 
         <button type="submit" class="btn btn-gold w-100">Regisztrálok</button>

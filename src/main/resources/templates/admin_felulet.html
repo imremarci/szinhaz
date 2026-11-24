@@ -73,7 +73,6 @@
                                th:text="${room.numberOfRows} + ' sor × ' + ${room.numberOfSeats} + ' szék (' + (${room.numberOfRows * room.numberOfSeats}) + ' fő)'">
                         </small>
                         <small class="text-secondary" style="font-style: italic;">+ Kattints előadás felvételéhez</small>
-                        <small class="text-secondary" style="font-style: italic;">+ Kattints előadás felvételéhez</small>
                     </div>
                 </div>
             </div>
@@ -185,8 +184,9 @@
 <script>
     let modalInstance;
 
-    function renderSeats(containerId, rows, pattern) {
+    function renderSeats() {
         document.querySelectorAll('.auditorium').forEach(container => {
+            container.innerHTML = ''; // ne duplázódjon
             const rows = parseInt(container.getAttribute('data-rows')) || 0;
             const seatsPerRow = parseInt(container.getAttribute('data-seats')) || 0;
 
@@ -210,9 +210,7 @@
         });
     }
 
-    renderSeats('seats-room-1', 5, [2, 'aisle', 4, 'aisle', 2]);
-    renderSeats('seats-room-2', 5, [3, 'aisle', 3]);
-    renderSeats('seats-room-3', 4, [5]);
+    renderSeats();
 
     function openModal(cardElement) {
         const roomId = cardElement.getAttribute('data-room-id');

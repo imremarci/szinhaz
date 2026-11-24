@@ -29,8 +29,11 @@ public class UserService {
         if (user.getName().trim().length() < 3) {
             throw new IllegalArgumentException("A felhasználónév legalább 3 karakter legyen!");
         }
-        if (user.getPassword() == null || user.getPassword().length() < 4) {
-            throw new IllegalArgumentException("A jelszó legalább 4 karakter hosszú legyen!");
+        if (user.getPassword() == null || user.getPassword().length() < 8) {
+            throw new IllegalArgumentException("A jelszó legalább 8 karakter hosszú legyen!");
+        }
+        if (!user.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).*$")) {
+            throw new IllegalArgumentException("A jelszónak tartalmaznia kell kisbetűt, nagybetűt és számot!");
         }
 
         String cleanName = user.getName().trim();
