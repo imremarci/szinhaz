@@ -2,6 +2,7 @@ package com.example.szinhaz.controller;
 
 import com.example.szinhaz.model.Actor;
 import com.example.szinhaz.model.Play;
+import com.example.szinhaz.model.Room;
 import com.example.szinhaz.model.Show;
 import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.ActorRepository;
@@ -11,131 +12,279 @@ import com.example.szinhaz.repository.TicketRepository;
 import com.example.szinhaz.service.PlayService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
 class PlayControllerTest {
 
-    @Mock private PlayService playService;
-    @Mock private ShowRepository showRepository;
-    @Mock private TicketRepository ticketRepository;
-    @Mock private PlayRepository playRepository;
-    @Mock private ActorRepository actorRepository;
-
-    @InjectMocks
+    private PlayService playService;
+    private ShowRepository showRepository;
+    private TicketRepository ticketRepository;
+    private PlayRepository playRepository;
+    private ActorRepository actorRepository;
     private PlayController playController;
-
     private Model model;
-    private RedirectAttributes redirectAttributes;
     private MockHttpSession session;
-    private User regularUser;
-    private User adminUser;
-    private Play play;
+    private RedirectAttributesModelMap redirectAttributes;
 
     @BeforeEach
     void setUp() {
+        playService = Mockito.mock(PlayService.class);
+        showRepository = Mockito.mock(ShowRepository.class);
+        ticketRepository = Mockito.mock(TicketRepository.class);
+        playRepository = Mockito.mock(PlayRepository.class);
+        actorRepository = Mockito.mock(ActorRepository.class);
+        playController = new PlayController(playService, showRepository, ticketRepository, playRepository, actorRepository);
         model = new ExtendedModelMap();
-        redirectAttributes = new RedirectAttributesModelMap();
         session = new MockHttpSession();
+        redirectAttributes = new RedirectAttributesModelMap();
+    }
 
-        regularUser = new User();
-        regularUser.setRole("USER");
+    private User loggedInUser(String role) {
+        User user = new User("teszt", "jelszo", "Teszt Elek", "teszt@example.com");
+        user.setRole(role);
+        return user;
+    }
 
-        adminUser = new User();
-        adminUser.setRole("ADMIN");
+    private Play play(Long id, String title) {
+        Play play = new Play(title, "Rendezo", 120, 2024, "Leiras", "kep.png");
+        play.setId(id);
+        return play;
+    }
 
-        play = new Play();
-        play.setId(1L);
-        play.setTitle("Hamlet");
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> flashAttributes() {
+        return (Map<String, Object>) redirectAttributes.getFlashAttributes();
     }
 
     @Test
-    void listPlaysUser_ReturnsViewWithPlays() {
-        when(playService.getAllPlays()).thenReturn(List.of(play));
+    void listPlaysUserShouldExposePlays() {
+        List<Play> plays = List.of(play(1L, "Hamlet"));
+        when(playService.getAllPlays()).thenReturn(plays);
 
-        assertEquals("szindarabok_user", playController.listPlaysUser(model));
-        assertNotNull(model.getAttribute("plays"));
+        String view = playController.listPlaysUser(model);
+
+        assertThat(view).isEqualTo("szindarabok_user");
+        assertThat(model.getAttribute("plays")).isSameAs(plays);
     }
 
     @Test
-    void viewPlayDetails_ReturnsViewWithPlay() {
+    void viewPlayDetailsShouldExposeSelectedPlay() {
+        Play play = play(1L, "Hamlet");
         when(playService.getPlayById(1L)).thenReturn(play);
 
-        assertEquals("szindarab", playController.viewPlayDetails(1L, model));
-        assertEquals(play, model.getAttribute("play"));
+        String view = playController.viewPlayDetails(1L, model);
+
+        assertThat(view).isEqualTo("szindarab");
+        assertThat(model.getAttribute("play")).isSameAs(play);
     }
 
     @Test
-    void listPlaysAdmin_AccessControlAndSuccess() {
-        assertEquals("redirect:/bejelentkezes", playController.listPlaysAdmin(session, model));
+    void viewPlayDetailsShouldReturnNotFoundWhenPlayIsMissing() {
+        when(playService.getPlayById(99L)).thenReturn(null);
 
-        session.setAttribute("loggedInUser", regularUser);
-        assertEquals("redirect:/fooldal", playController.listPlaysAdmin(session, model));
-
-        session.setAttribute("loggedInUser", adminUser);
-        when(playService.getAllPlays()).thenReturn(List.of(play));
-        when(actorRepository.findAll()).thenReturn(Collections.emptyList());
-
-        assertEquals("szindarabok_admin", playController.listPlaysAdmin(session, model));
-        assertNotNull(model.getAttribute("plays"));
-        assertNotNull(model.getAttribute("newPlay"));
-        assertNotNull(model.getAttribute("actors"));
+        assertThatThrownBy(() -> playController.viewPlayDetails(99L, model))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("A színdarab nem található.");
     }
 
     @Test
-    void savePlay_AccessControlActorsSuccessAndError() {
-        assertEquals("redirect:/fooldal", playController.savePlay(play, null, session, redirectAttributes));
-
-        session.setAttribute("loggedInUser", adminUser);
-        Actor actor = new Actor();
-        when(actorRepository.findAllById(List.of(1L))).thenReturn(List.of(actor));
-
-        assertEquals("redirect:/admin/darabok", playController.savePlay(play, List.of(1L), session, redirectAttributes));
-        assertNotNull(redirectAttributes.getFlashAttributes().get("success"));
-        verify(playService).savePlay(play);
-
-        doThrow(new IllegalArgumentException("Hibás cím")).when(playService).savePlay(any(Play.class));
-        assertEquals("redirect:/admin/darabok", playController.savePlay(play, Collections.emptyList(), session, redirectAttributes));
-        assertEquals("Hibás cím", redirectAttributes.getFlashAttributes().get("error"));
+    void listPlaysAdminShouldRedirectToLoginWithoutUser() {
+        assertThat(playController.listPlaysAdmin(session, model)).isEqualTo("redirect:/bejelentkezes");
     }
 
     @Test
-    void deletePlay_AccessControlAndCascadeDelete() {
-        assertEquals("redirect:/fooldal", playController.deletePlay(1L, session));
+    void listPlaysAdminShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
 
-        session.setAttribute("loggedInUser", adminUser);
+        assertThat(playController.listPlaysAdmin(session, model)).isEqualTo("redirect:/fooldal");
+    }
 
-        Show relatedShow = new Show();
-        relatedShow.setId(10L);
-        relatedShow.setPlay(play);
+    @Test
+    void listPlaysAdminShouldExposePlaysFormAndActorsForAdmin() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        List<Play> plays = List.of(play(1L, "Hamlet"));
+        List<Actor> actors = List.of(new Actor("Anna", 5, "anna.png"));
+        when(playService.getAllPlays()).thenReturn(plays);
+        when(actorRepository.findAll()).thenReturn(actors);
 
-        Play otherPlay = new Play();
-        otherPlay.setId(2L);
-        Show unrelatedShow = new Show();
-        unrelatedShow.setId(11L);
-        unrelatedShow.setPlay(otherPlay);
+        String view = playController.listPlaysAdmin(session, model);
 
-        when(showRepository.findAll()).thenReturn(List.of(relatedShow, unrelatedShow));
-        when(ticketRepository.findByShowId(10L)).thenReturn(Collections.emptyList());
+        assertThat(view).isEqualTo("szindarabok_admin");
+        assertThat(model.getAttribute("plays")).isSameAs(plays);
+        assertThat(model.getAttribute("newPlay")).isInstanceOf(Play.class);
+        assertThat(model.getAttribute("actors")).isSameAs(actors);
+    }
 
-        assertEquals("redirect:/admin/darabok", playController.deletePlay(1L, session));
-        verify(ticketRepository).deleteAll(any());
-        verify(showRepository).deleteAll(List.of(relatedShow));
-        verify(playRepository).deleteById(1L);
+    @Test
+    void savePlayShouldRedirectWithoutUser() {
+        Play play = play(null, "Hamlet");
+
+        assertThat(playController.savePlay(play, null, session, redirectAttributes))
+                .isEqualTo("redirect:/fooldal");
+        verify(playService, never()).savePlay(any());
+    }
+
+    @Test
+    void savePlayShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+        Play play = play(null, "Hamlet");
+
+        assertThat(playController.savePlay(play, null, session, redirectAttributes))
+                .isEqualTo("redirect:/fooldal");
+        verify(playService, never()).savePlay(any());
+    }
+
+    @Test
+    void savePlayShouldSaveWithoutActorsWhenActorIdsAreNull() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(null, "Hamlet");
+        when(playService.savePlay(play)).thenReturn(play);
+
+        String view = playController.savePlay(play, null, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/darabok");
+        assertThat(play.getActors()).isEmpty();
+        assertThat(flashAttributes())
+                .containsEntry("success", "Színdarab sikeresen mentve!");
+        verify(actorRepository, never()).findAllById(any());
+    }
+
+    @Test
+    void savePlayShouldSaveWithoutActorsWhenActorIdsAreEmpty() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(null, "Hamlet");
+        when(playService.savePlay(play)).thenReturn(play);
+
+        playController.savePlay(play, List.of(), session, redirectAttributes);
+
+        assertThat(play.getActors()).isEmpty();
+        verify(actorRepository, never()).findAllById(any());
+    }
+
+    @Test
+    void savePlayShouldAttachSelectedActors() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(null, "Hamlet");
+        List<Long> actorIds = List.of(1L, 2L);
+        List<Actor> actors = List.of(new Actor("Anna", 5, "anna.png"), new Actor("Béla", 4, "bela.png"));
+        when(actorRepository.findAllById(actorIds)).thenReturn(actors);
+        when(playService.savePlay(play)).thenReturn(play);
+
+        playController.savePlay(play, actorIds, session, redirectAttributes);
+
+        assertThat(play.getActors()).isSameAs(actors);
+        verify(actorRepository).findAllById(actorIds);
+    }
+
+    @Test
+    void savePlayShouldClearActorsWhenEditingWithoutActorIds() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(5L, "Hamlet");
+        when(playService.savePlay(play)).thenReturn(play);
+
+        playController.savePlay(play, null, session, redirectAttributes);
+
+        assertThat(play.getActors()).isEmpty();
+        verify(actorRepository, never()).findAllById(any());
+    }
+
+    @Test
+    void savePlayShouldReplaceActorsWhenEditingWithActorIds() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(5L, "Hamlet");
+        List<Long> actorIds = List.of(1L, 2L);
+        List<Actor> actors = List.of(
+                new Actor("Anna", 5, "anna.png"),
+                new Actor("Béla", 4, "bela.png")
+        );
+        when(actorRepository.findAllById(actorIds)).thenReturn(actors);
+        when(playService.savePlay(play)).thenReturn(play);
+
+        playController.savePlay(play, actorIds, session, redirectAttributes);
+
+        assertThat(play.getActors()).isSameAs(actors);
+        verify(actorRepository).findAllById(actorIds);
+    }
+
+    @Test
+    void savePlayShouldReportValidationError() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play play = play(null, "");
+        when(playService.savePlay(play)).thenThrow(new IllegalArgumentException("Hibás darab"));
+
+        String view = playController.savePlay(play, null, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/darabok");
+        assertThat(flashAttributes()).containsEntry("error", "Hibás darab");
+    }
+
+    @Test
+    void deletePlayShouldRedirectWithoutUser() {
+        assertThat(playController.deletePlay(1L, session)).isEqualTo("redirect:/fooldal");
+        verify(showRepository, never()).deleteAll(any());
+    }
+
+    @Test
+    void deletePlayShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+
+        assertThat(playController.deletePlay(1L, session)).isEqualTo("redirect:/fooldal");
+        verify(showRepository, never()).deleteAll(any());
+    }
+
+    @Test
+    void deletePlayShouldRemoveRelatedShowsAndTickets() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Play requestedPlay = play(2L, "Hamlet");
+        Play otherPlay = play(3L, "Dzsungel");
+        Show showWithoutPlay = new Show(LocalDateTime.now(), new Room("Terem", 5, 5), null);
+        Show unrelatedShow = new Show(LocalDateTime.now(), new Room("Terem", 5, 5), otherPlay);
+        Show relatedShow = new Show(LocalDateTime.now(), new Room("Terem", 5, 5), requestedPlay);
+        relatedShow.setId(9L);
+        List<Show> allShows = List.of(showWithoutPlay, unrelatedShow, relatedShow);
+        List<com.example.szinhaz.model.Ticket> tickets = List.of(new com.example.szinhaz.model.Ticket());
+        when(showRepository.findAll()).thenReturn(allShows);
+        when(ticketRepository.findByShowId(9L)).thenReturn(tickets);
+
+        String view = playController.deletePlay(2L, session);
+
+        assertThat(view).isEqualTo("redirect:/admin/darabok");
+        verify(ticketRepository).deleteAll(tickets);
+
+        ArgumentCaptor<List<Show>> showsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(showRepository).deleteAll(showsCaptor.capture());
+        assertThat(showsCaptor.getValue()).containsExactly(relatedShow);
+        verify(playRepository).deleteById(2L);
+    }
+
+    @Test
+    void deletePlayShouldHandlePlayWithoutRelatedShows() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        when(showRepository.findAll()).thenReturn(List.of());
+
+        String view = playController.deletePlay(4L, session);
+
+        assertThat(view).isEqualTo("redirect:/admin/darabok");
+        verify(ticketRepository, never()).deleteAll(any());
+        verify(showRepository).deleteAll(List.of());
+        verify(playRepository).deleteById(4L);
     }
 }

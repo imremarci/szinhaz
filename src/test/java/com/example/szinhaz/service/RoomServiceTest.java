@@ -4,71 +4,62 @@ import com.example.szinhaz.model.Room;
 import com.example.szinhaz.repository.RoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class RoomServiceTest {
 
-    @Mock
     private RoomRepository roomRepository;
-
-    @InjectMocks
     private RoomService roomService;
-
-    private Room room;
 
     @BeforeEach
     void setUp() {
-        room = new Room("Nagyterem", 5, 10);
+        roomRepository = Mockito.mock(RoomRepository.class);
+        roomService = new RoomService(roomRepository);
     }
 
     @Test
-    void getAllRooms_ReturnsList() {
-        when(roomRepository.findAll()).thenReturn(List.of(room));
+    void getAllRoomsShouldReturnRepositoryResult() {
+        List<Room> rooms = List.of(new Room("Nagyterem", 10, 15));
+        when(roomRepository.findAll()).thenReturn(rooms);
 
-        List<Room> result = roomService.getAllRooms();
-
-        assertEquals(1, result.size());
-        verify(roomRepository).findAll();
+        assertThat(roomService.getAllRooms()).isSameAs(rooms);
     }
 
     @Test
-    void getRoomById_Found_ReturnsRoom() {
+    void getRoomByIdShouldReturnRoomWhenPresent() {
+        Room room = new Room("Nagyterem", 10, 15);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
 
-        Room result = roomService.getRoomById(1L);
-
-        assertNotNull(result);
-        assertEquals("Nagyterem", result.getName());
+        assertThat(roomService.getRoomById(1L)).isSameAs(room);
     }
 
     @Test
-    void getRoomById_NotFound_ReturnsNull() {
-        when(roomRepository.findById(99L)).thenReturn(Optional.empty());
+    void getRoomByIdShouldReturnNullWhenMissing() {
+        when(roomRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertNull(roomService.getRoomById(99L));
+        assertThat(roomService.getRoomById(2L)).isNull();
     }
 
     @Test
-    void saveRoom_CallsRepositorySave() {
+    void saveRoomShouldDelegateToRepository() {
+        Room room = new Room("Kamaraterem", 8, 10);
+
         roomService.saveRoom(room);
 
-        verify(roomRepository, times(1)).save(room);
+        verify(roomRepository).save(room);
     }
 
     @Test
-    void deleteRoom_CallsRepositoryDelete() {
-        roomService.deleteRoom(1L);
+    void deleteRoomShouldDelegateToRepository() {
+        roomService.deleteRoom(6L);
 
-        verify(roomRepository, times(1)).deleteById(1L);
+        verify(roomRepository).deleteById(6L);
     }
 }

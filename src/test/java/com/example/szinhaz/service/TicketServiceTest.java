@@ -1,6 +1,7 @@
 package com.example.szinhaz.service;
 
 import com.example.szinhaz.model.CartItem;
+import com.example.szinhaz.model.Play;
 import com.example.szinhaz.model.Room;
 import com.example.szinhaz.model.Show;
 import com.example.szinhaz.model.Ticket;
@@ -8,154 +9,244 @@ import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.TicketRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
 
-    @Mock
     private TicketRepository ticketRepository;
-
-    @InjectMocks
     private TicketService ticketService;
-
-    private Show futureShow;
-    private User user;
-    private Room room;
 
     @BeforeEach
     void setUp() {
-        room = new Room("Nagyterem", 5, 10);
+        ticketRepository = Mockito.mock(TicketRepository.class);
+        ticketService = new TicketService(ticketRepository);
+    }
 
-        futureShow = new Show();
-        futureShow.setId(1L);
-        futureShow.setStartTime(LocalDateTime.now().plusDays(1));
-        futureShow.setRoom(room);
-
-        user = new User();
+    private User user() {
+        User user = new User("anna", "jelszo", "Anna", "anna@example.com");
         user.setId(1L);
-        user.setName("tesztuser");
+        return user;
+    }
+
+    private Room room() {
+        Room room = new Room("Nagyterem", 10, 15);
+        room.setId(1L);
+        return room;
+    }
+
+    private Play play() {
+        Play play = new Play("Hamlet", "Shakespeare", 120, 2024, "Leiras", "kep.png");
+        play.setId(1L);
+        return play;
+    }
+
+    private Show futureShow() {
+        Show show = new Show(LocalDateTime.now().plusDays(1), room(), play());
+        show.setId(5L);
+        return show;
     }
 
     @Test
-    void getTicketsByShow_ReturnsList() {
-        Ticket ticket = new Ticket(1, 2, 4500, user, futureShow);
-        when(ticketRepository.findByShowId(1L)).thenReturn(List.of(ticket));
+    void getTicketsByShowShouldDelegateToRepository() {
+        List<Ticket> tickets = List.of(new Ticket());
+        when(ticketRepository.findByShowId(5L)).thenReturn(tickets);
 
-        List<Ticket> result = ticketService.getTicketsByShow(1L);
-
-        assertEquals(1, result.size());
-        verify(ticketRepository).findByShowId(1L);
+        assertThat(ticketService.getTicketsByShow(5L)).isSameAs(tickets);
     }
 
     @Test
-    void getTicketsByUser_ReturnsList() {
-        Ticket ticket = new Ticket(1, 2, 4500, user, futureShow);
-        when(ticketRepository.findByUserId(1L)).thenReturn(List.of(ticket));
+    void getTicketsByUserShouldDelegateToRepository() {
+        List<Ticket> tickets = List.of(new Ticket());
+        when(ticketRepository.findByUserId(1L)).thenReturn(tickets);
 
-        List<Ticket> result = ticketService.getTicketsByUser(1L);
-
-        assertEquals(1, result.size());
-        verify(ticketRepository).findByUserId(1L);
+        assertThat(ticketService.getTicketsByUser(1L)).isSameAs(tickets);
     }
 
     @Test
-    void buyTicket_ValidData_SavesAndReturnsTicket() {
-        when(ticketRepository.findByShowId(1L)).thenReturn(Collections.emptyList());
-        when(ticketRepository.save(any(Ticket.class))).thenAnswer(i -> i.getArgument(0));
-
-        Ticket saved = ticketService.buyTicket(futureShow, user, 2, 5, 4500);
-
-        assertNotNull(saved);
-        assertEquals(2, saved.getRowNumber());
-        assertEquals(5, saved.getSeatNumber());
-        assertEquals(4500, saved.getPrice());
-        verify(ticketRepository, times(1)).save(any(Ticket.class));
+    void buyTicketShouldRejectNullShow() {
+        assertThatThrownBy(() -> ticketService.buyTicket(null, user(), 1, 1, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Hiányzó előadás vagy felhasználó!");
     }
 
     @Test
-    void buyTicket_NullShowOrUser_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(null, user, 1, 1, 4500));
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(futureShow, null, 1, 1, 4500));
-        verify(ticketRepository, never()).save(any());
+    void buyTicketShouldRejectNullUser() {
+        assertThatThrownBy(() -> ticketService.buyTicket(futureShow(), null, 1, 1, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Hiányzó előadás vagy felhasználó!");
     }
 
     @Test
-    void buyTicket_PastShow_ThrowsException() {
-        futureShow.setStartTime(LocalDateTime.now().minusHours(1));
+    void buyTicketShouldRejectPastShow() {
+        Show show = futureShow();
+        show.setStartTime(LocalDateTime.now().minusMinutes(1));
 
-        assertThrows(IllegalStateException.class, () -> ticketService.buyTicket(futureShow, user, 1, 1, 4500));
-        verify(ticketRepository, never()).save(any());
+        assertThatThrownBy(() -> ticketService.buyTicket(show, user(), 1, 1, 4500))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Már elkezdődött vagy lejárt előadásra nem váltható jegy!");
     }
 
     @Test
-    void buyTicket_InvalidRowOrSeat_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(futureShow, user, 0, 1, 4500));
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(futureShow, user, 1, -2, 4500));
-        verify(ticketRepository, never()).save(any());
+    void buyTicketShouldRejectNonPositiveRow() {
+        assertThatThrownBy(() -> ticketService.buyTicket(futureShow(), user(), 0, 1, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen sor- vagy székszám!");
     }
 
     @Test
-    void buyTicket_NullRoom_ThrowsException() {
-        futureShow.setRoom(null);
-
-        assertThrows(IllegalStateException.class, () -> ticketService.buyTicket(futureShow, user, 1, 1, 4500));
-        verify(ticketRepository, never()).save(any());
+    void buyTicketShouldRejectNonPositiveSeat() {
+        assertThatThrownBy(() -> ticketService.buyTicket(futureShow(), user(), 1, 0, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen sor- vagy székszám!");
     }
 
     @Test
-    void buyTicket_ExceedsRoomCapacity_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(futureShow, user, 6, 1, 4500));
-        assertThrows(IllegalArgumentException.class, () -> ticketService.buyTicket(futureShow, user, 1, 11, 4500));
-        verify(ticketRepository, never()).save(any());
+    void buyTicketShouldRejectShowWithoutRoom() {
+        Show show = futureShow();
+        show.setRoom(null);
+
+        assertThatThrownBy(() -> ticketService.buyTicket(show, user(), 1, 1, 4500))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Az előadáshoz nem tartozik terem!");
     }
 
     @Test
-    void buyTicket_SeatAlreadyTaken_ThrowsException() {
-        Ticket existing = new Ticket(2, 5, 4500, user, futureShow);
-        when(ticketRepository.findByShowId(1L)).thenReturn(List.of(existing));
-
-        assertThrows(IllegalStateException.class, () -> ticketService.buyTicket(futureShow, user, 2, 5, 4500));
-        verify(ticketRepository, never()).save(any());
+    void buyTicketShouldRejectRowOutsideRoom() {
+        assertThatThrownBy(() -> ticketService.buyTicket(futureShow(), user(), 11, 1, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nem létező szék! A terem mérete: 10 sor, soronként 15 szék.");
     }
 
     @Test
-    void checkoutCart_ValidMultipleSeats_SavesAllTickets() {
-        CartItem item = new CartItem(futureShow, "1. sor, 2. szék; 1. sor, 3. szék;", "1-2, 1-3", 2, 9000);
-        when(ticketRepository.findByShowId(1L)).thenReturn(Collections.emptyList());
-        when(ticketRepository.save(any(Ticket.class))).thenAnswer(i -> i.getArgument(0));
-
-        ticketService.checkoutCart(List.of(item), user);
-
-        verify(ticketRepository, times(2)).save(any(Ticket.class));
+    void buyTicketShouldRejectSeatOutsideRoom() {
+        assertThatThrownBy(() -> ticketService.buyTicket(futureShow(), user(), 1, 16, 4500))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nem létező szék! A terem mérete: 10 sor, soronként 15 szék.");
     }
 
     @Test
-    void checkoutCart_BlankOrNullRawSeats_ThrowsException() {
-        CartItem nullSeats = new CartItem(futureShow, "", null, 1, 4500);
-        CartItem blankSeats = new CartItem(futureShow, "", "   ", 1, 4500);
+    void buyTicketShouldRejectAlreadyTakenSeat() {
+        Show show = futureShow();
+        Ticket existing = new Ticket(1, 2, 4500, user(), show);
+        when(ticketRepository.findByShowId(5L)).thenReturn(List.of(existing));
 
-        assertThrows(IllegalArgumentException.class, () -> ticketService.checkoutCart(List.of(nullSeats), user));
-        assertThrows(IllegalArgumentException.class, () -> ticketService.checkoutCart(List.of(blankSeats), user));
-        verify(ticketRepository, never()).save(any());
+        assertThatThrownBy(() -> ticketService.buyTicket(show, user(), 1, 2, 4500))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Ez a szék (1. sor, 2. szék) már foglalt!");
     }
 
     @Test
-    void checkoutCart_InvalidSeatFormat_ThrowsException() {
-        CartItem badFormat = new CartItem(futureShow, "", "1_2", 1, 4500);
+    void buyTicketShouldIgnoreTicketsInOtherRows() {
+        Show show = futureShow();
+        when(ticketRepository.findByShowId(5L))
+                .thenReturn(List.of(new Ticket(2, 2, 4500, user(), show)));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(IllegalArgumentException.class, () -> ticketService.checkoutCart(List.of(badFormat), user));
-        verify(ticketRepository, never()).save(any());
+        Ticket ticket = ticketService.buyTicket(show, user(), 1, 2, 4500);
+
+        assertThat(ticket.getRowNumber()).isEqualTo(1);
+        assertThat(ticket.getSeatNumber()).isEqualTo(2);
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void buyTicketShouldSaveTicketWhenSeatIsFree() {        Show show = futureShow();
+        when(ticketRepository.findByShowId(5L)).thenReturn(List.of(new Ticket(1, 3, 4500, user(), show)));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Ticket ticket = ticketService.buyTicket(show, user(), 1, 2, 5000);
+
+        assertThat(ticket.getRowNumber()).isEqualTo(1);
+        assertThat(ticket.getSeatNumber()).isEqualTo(2);
+        assertThat(ticket.getPrice()).isEqualTo(5000);
+        assertThat(ticket.getUser()).isNotNull();
+        assertThat(ticket.getShow()).isSameAs(show);
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void buyTicketShouldAcceptBoundarySeat() {
+        Show show = futureShow();
+        when(ticketRepository.findByShowId(5L)).thenReturn(List.of());
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Ticket ticket = ticketService.buyTicket(show, user(), 10, 15, 4500);
+
+        assertThat(ticket.getRowNumber()).isEqualTo(10);
+        assertThat(ticket.getSeatNumber()).isEqualTo(15);
+    }
+
+    @Test
+    void checkoutCartShouldDoNothingForEmptyCart() {
+        ticketService.checkoutCart(List.of(), user());
+
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void checkoutCartShouldRejectNullSeats() {
+        CartItem item = new CartItem(futureShow(), "info", null, 1, 4500);
+
+        assertThatThrownBy(() -> ticketService.checkoutCart(List.of(item), user()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen ülőhelyadat a kosárban!");
+    }
+
+    @Test
+    void checkoutCartShouldRejectBlankSeats() {
+        CartItem item = new CartItem(futureShow(), "info", "   ", 1, 4500);
+
+        assertThatThrownBy(() -> ticketService.checkoutCart(List.of(item), user()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen ülőhelyadat a kosárban!");
+    }
+
+    @Test
+    void checkoutCartShouldRejectSeatWithoutSeparator() {
+        CartItem item = new CartItem(futureShow(), "info", "12", 1, 4500);
+
+        assertThatThrownBy(() -> ticketService.checkoutCart(List.of(item), user()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Hibás székformátum: 12");
+    }
+
+    @Test
+    void checkoutCartShouldRejectSeatWithTooManyParts() {
+        CartItem item = new CartItem(futureShow(), "info", "1-2-3", 1, 4500);
+
+        assertThatThrownBy(() -> ticketService.checkoutCart(List.of(item), user()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Hibás székformátum: 1-2-3");
+    }
+
+    @Test
+    void checkoutCartShouldBuyEverySeat() {
+        Show show = futureShow();
+        when(ticketRepository.findByShowId(5L)).thenReturn(List.of());
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        CartItem item = new CartItem(show, "info", " 1-2 , 1-3 ", 2, 9000);
+
+        ticketService.checkoutCart(List.of(item), user());
+
+        ArgumentCaptor<Ticket> captor = ArgumentCaptor.forClass(Ticket.class);
+        verify(ticketRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(Ticket::getRowNumber, Ticket::getSeatNumber, Ticket::getPrice)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(1, 2, 4500),
+                        org.assertj.core.groups.Tuple.tuple(1, 3, 4500)
+                );
     }
 }

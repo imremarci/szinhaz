@@ -1,82 +1,109 @@
 package com.example.szinhaz.controller;
 
+import com.example.szinhaz.model.Play;
+import com.example.szinhaz.model.Room;
 import com.example.szinhaz.model.Show;
 import com.example.szinhaz.model.Ticket;
+import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.TicketRepository;
 import com.example.szinhaz.service.ShowService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
 class ShowControllerTest {
 
-    @Mock
     private ShowService showService;
-
-    @Mock
     private TicketRepository ticketRepository;
-
-    @InjectMocks
     private ShowController showController;
+    private Model model;
 
-    @Test
-    void eloadasok_FiltersPastAndNullAndSortsFutureShows() {
-        Model model = new ExtendedModelMap();
+    @BeforeEach
+    void setUp() {
+        showService = Mockito.mock(ShowService.class);
+        ticketRepository = Mockito.mock(TicketRepository.class);
+        showController = new ShowController(showService, ticketRepository);
+        model = new ExtendedModelMap();
+    }
 
-        Show pastShow = new Show();
-        pastShow.setStartTime(LocalDateTime.now().minusDays(1));
-
-        Show nullTimeShow = new Show();
-        nullTimeShow.setStartTime(null);
-
-        Show laterShow = new Show();
-        laterShow.setStartTime(LocalDateTime.now().plusDays(3));
-
-        Show soonerShow = new Show();
-        soonerShow.setStartTime(LocalDateTime.now().plusDays(1));
-
-        when(showService.getAllShows()).thenReturn(List.of(pastShow, nullTimeShow, laterShow, soonerShow));
-
-        String view = showController.eloadasok(model);
-
-        assertEquals("eloadasok", view);
-        @SuppressWarnings("unchecked")
-        List<Show> result = (List<Show>) model.getAttribute("shows");
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(soonerShow, result.get(0));
-        assertEquals(laterShow, result.get(1));
+    private Show show(Long id, LocalDateTime startTime) {
+        Show show = new Show(startTime, new Room("Nagyterem", 10, 15),
+                new Play("Hamlet", "Shakespeare", 120, 2024, "Leiras", "kep.png"));
+        show.setId(id);
+        return show;
     }
 
     @Test
-    void bookShow_PopulatesShowAndFormattedBookedSeats() {
-        Model model = new ExtendedModelMap();
-        Show show = new Show();
-        show.setId(5L);
+    void eloadasokShouldExposeOnlyFutureShowsInChronologicalOrder() {
+        Show withoutStart = show(1L, null);
+        Show past = show(2L, LocalDateTime.now().minusDays(1));
+        Show later = show(3L, LocalDateTime.now().plusDays(2));
+        Show sooner = show(4L, LocalDateTime.now().plusDays(1));
+        when(showService.getAllShows()).thenReturn(List.of(withoutStart, past, later, sooner));
 
-        Ticket t1 = new Ticket(1, 2, 4500, null, show);
-        Ticket t2 = new Ticket(3, 4, 4500, null, show);
+        String view = showController.eloadasok(model);
 
+        assertThat(view).isEqualTo("eloadasok");
+        assertThat((List<Show>) model.getAttribute("shows"))
+                .extracting(Show::getId)
+                .containsExactly(4L, 3L);
+    }
+
+    @Test
+    void eloadasokShouldExposeEmptyListWhenThereAreNoShows() {
+        when(showService.getAllShows()).thenReturn(List.of());
+
+        showController.eloadasok(model);
+
+        assertThat((List<Show>) model.getAttribute("shows")).isEmpty();
+    }
+
+    @Test
+    void bookShowShouldExposeShowAndBookedSeats() {
+        Show show = show(5L, LocalDateTime.now().plusDays(1));
+        User user = new User("anna", "jelszo", "Anna", "anna@example.com");
+        List<Ticket> tickets = List.of(
+                new Ticket(1, 2, 4500, user, show),
+                new Ticket(3, 4, 4500, user, show)
+        );
         when(showService.getShowById(5L)).thenReturn(show);
-        when(ticketRepository.findByShowId(5L)).thenReturn(List.of(t1, t2));
+        when(ticketRepository.findByShowId(5L)).thenReturn(tickets);
 
         String view = showController.bookShow(5L, model);
 
-        assertEquals("eloadas", view);
-        assertEquals(show, model.getAttribute("show"));
-        @SuppressWarnings("unchecked")
-        List<String> bookedSeats = (List<String>) model.getAttribute("bookedSeats");
-        assertEquals(List.of("1-2", "3-4"), bookedSeats);
+        assertThat(view).isEqualTo("eloadas");
+        assertThat(model.getAttribute("show")).isSameAs(show);
+        assertThat((List<String>) model.getAttribute("bookedSeats")).containsExactly("1-2", "3-4");
+    }
+
+    @Test
+    void bookShowShouldReturnNotFoundWhenShowIsMissing() {
+        when(showService.getShowById(6L)).thenReturn(null);
+
+        assertThatThrownBy(() -> showController.bookShow(6L, model))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Az előadás nem található.");
+    }
+
+    @Test
+    void bookShowShouldExposeEmptyBookedSeatsWhenNoTicketsExist() {
+        Show show = show(6L, LocalDateTime.now().plusDays(1));
+        when(showService.getShowById(6L)).thenReturn(show);
+        when(ticketRepository.findByShowId(6L)).thenReturn(List.of());
+
+        showController.bookShow(6L, model);
+
+        assertThat(model.getAttribute("show")).isSameAs(show);
+        assertThat((List<String>) model.getAttribute("bookedSeats")).isEmpty();
     }
 }

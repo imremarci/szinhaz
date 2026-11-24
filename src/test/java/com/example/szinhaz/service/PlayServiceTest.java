@@ -4,124 +4,213 @@ import com.example.szinhaz.model.Play;
 import com.example.szinhaz.repository.PlayRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class PlayServiceTest {
 
-    @Mock
     private PlayRepository playRepository;
-
-    @InjectMocks
     private PlayService playService;
-
-    private Play validPlay;
 
     @BeforeEach
     void setUp() {
-        validPlay = new Play();
-        validPlay.setTitle("Hamlet");
-        validPlay.setDirector("Alföldi Róbert");
-        validPlay.setDurationMinutes(120);
-        validPlay.setReleaseYear(2024);
+        playRepository = Mockito.mock(PlayRepository.class);
+        playService = new PlayService(playRepository);
+    }
+
+    private Play validPlay() {
+        return new Play("Hamlet", "William Shakespeare", 160, 2024, "Leiras", "kep.png");
     }
 
     @Test
-    void getAllPlays_ReturnsList() {
-        when(playRepository.findAll()).thenReturn(List.of(validPlay));
+    void getAllPlaysShouldReturnRepositoryResult() {
+        List<Play> plays = List.of(validPlay());
+        when(playRepository.findAll()).thenReturn(plays);
 
-        List<Play> result = playService.getAllPlays();
-
-        assertEquals(1, result.size());
-        verify(playRepository).findAll();
+        assertThat(playService.getAllPlays()).isSameAs(plays);
     }
 
     @Test
-    void getPlayById_Found_ReturnsPlay() {
-        when(playRepository.findById(1L)).thenReturn(Optional.of(validPlay));
+    void getPlayByIdShouldReturnPlayWhenPresent() {
+        Play play = validPlay();
+        when(playRepository.findById(1L)).thenReturn(Optional.of(play));
 
-        Play result = playService.getPlayById(1L);
-
-        assertNotNull(result);
-        assertEquals("Hamlet", result.getTitle());
+        assertThat(playService.getPlayById(1L)).isSameAs(play);
     }
 
     @Test
-    void getPlayById_NotFound_ReturnsNull() {
-        when(playRepository.findById(99L)).thenReturn(Optional.empty());
+    void getPlayByIdShouldReturnNullWhenMissing() {
+        when(playRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertNull(playService.getPlayById(99L));
+        assertThat(playService.getPlayById(2L)).isNull();
     }
 
     @Test
-    void savePlay_ValidData_SavesAndReturnsPlay() {
-        when(playRepository.save(any(Play.class))).thenAnswer(i -> i.getArgument(0));
+    void savePlayShouldPersistValidPlay() {
+        Play play = validPlay();
+        when(playRepository.save(play)).thenReturn(play);
 
-        Play saved = playService.savePlay(validPlay);
-
-        assertNotNull(saved);
-        assertEquals("Hamlet", saved.getTitle());
-        verify(playRepository, times(1)).save(validPlay);
+        assertThat(playService.savePlay(play)).isSameAs(play);
+        verify(playRepository).save(play);
     }
 
     @Test
-    void savePlay_EmptyOrNullTitle_ThrowsException() {
-        validPlay.setTitle(null);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
+    void savePlayShouldAcceptBoundaryDuration() {
+        Play shortest = validPlay();
+        shortest.setDurationMinutes(15);
+        Play longest = validPlay();
+        longest.setDurationMinutes(360);
+        when(playRepository.save(any(Play.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        validPlay.setTitle("   ");
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
-        verify(playRepository, never()).save(any());
+        assertThat(playService.savePlay(shortest).getDurationMinutes()).isEqualTo(15);
+        assertThat(playService.savePlay(longest).getDurationMinutes()).isEqualTo(360);
     }
 
     @Test
-    void savePlay_EmptyOrNullDirector_ThrowsException() {
-        validPlay.setDirector(null);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
+    void savePlayShouldRejectNullTitle() {
+        Play play = validPlay();
+        play.setTitle(null);
 
-        validPlay.setDirector("   ");
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
-        verify(playRepository, never()).save(any());
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab címe nem lehet üres!");
     }
 
     @Test
-    void savePlay_InvalidDuration_ThrowsException() {
-        validPlay.setDurationMinutes(null);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
+    void savePlayShouldRejectBlankTitle() {
+        Play play = validPlay();
+        play.setTitle("  ");
 
-        validPlay.setDurationMinutes(10);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
-
-        validPlay.setDurationMinutes(400);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
-        verify(playRepository, never()).save(any());
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab címe nem lehet üres!");
     }
 
     @Test
-    void savePlay_InvalidReleaseYear_ThrowsException() {
-        validPlay.setReleaseYear(1799);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
+    void savePlayShouldRejectNullDirector() {
+        Play play = validPlay();
+        play.setDirector(null);
 
-        validPlay.setReleaseYear(LocalDate.now().getYear() + 10);
-        assertThrows(IllegalArgumentException.class, () -> playService.savePlay(validPlay));
-        verify(playRepository, never()).save(any());
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A rendező neve nem lehet üres!");
     }
 
     @Test
-    void deletePlay_CallsRepositoryDelete() {
-        playService.deletePlay(1L);
+    void savePlayShouldRejectBlankDirector() {
+        Play play = validPlay();
+        play.setDirector("   ");
 
-        verify(playRepository, times(1)).deleteById(1L);
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A rendező neve nem lehet üres!");
+    }
+
+    @Test
+    void savePlayShouldRejectNullDuration() {
+        Play play = validPlay();
+        play.setDurationMinutes(null);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab hossza kötelező, és 15 és 360 perc között lehet!");
+    }
+
+    @Test
+    void savePlayShouldRejectTooShortDuration() {
+        Play play = validPlay();
+        play.setDurationMinutes(14);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab hossza kötelező, és 15 és 360 perc között lehet!");
+    }
+
+    @Test
+    void savePlayShouldRejectTooLongDuration() {
+        Play play = validPlay();
+        play.setDurationMinutes(361);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab hossza kötelező, és 15 és 360 perc között lehet!");
+    }
+
+    @Test
+    void savePlayShouldRejectTooEarlyReleaseYear() {
+        Play play = validPlay();
+        play.setReleaseYear(1799);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen bemutató év!");
+    }
+
+    @Test
+    void savePlayShouldRejectTooLateReleaseYear() {
+        Play play = validPlay();
+        play.setReleaseYear(LocalDate.now().getYear() + 6);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen bemutató év!");
+    }
+
+    @Test
+    void savePlayShouldAcceptBoundaryReleaseYears() {
+        Play earliest = validPlay();
+        earliest.setReleaseYear(1800);
+        Play latest = validPlay();
+        latest.setReleaseYear(LocalDate.now().getYear() + 5);
+        when(playRepository.save(any(Play.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThat(playService.savePlay(earliest).getReleaseYear()).isEqualTo(1800);
+        assertThat(playService.savePlay(latest).getReleaseYear()).isEqualTo(LocalDate.now().getYear() + 5);
+    }
+
+    @Test
+    void deletePlayShouldDelegateToRepository() {
+        playService.deletePlay(4L);
+
+        verify(playRepository).deleteById(4L);
+    }
+
+    @Test
+    void savePlayShouldRejectTooLongTitle() {
+        Play play = validPlay();
+        play.setTitle("T".repeat(256));
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A színdarab címe legfeljebb 255 karakter lehet!");
+    }
+
+    @Test
+    void savePlayShouldRejectTooLongDirector() {
+        Play play = validPlay();
+        play.setDirector("D".repeat(256));
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A rendező neve legfeljebb 255 karakter lehet!");
+    }
+
+    @Test
+    void savePlayShouldRejectNullReleaseYear() {
+        Play play = validPlay();
+        play.setReleaseYear(null);
+
+        assertThatThrownBy(() -> playService.savePlay(play))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Érvénytelen bemutató év!");
     }
 }

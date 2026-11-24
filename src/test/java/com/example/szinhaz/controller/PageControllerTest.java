@@ -4,6 +4,7 @@ import com.example.szinhaz.model.CartItem;
 import com.example.szinhaz.model.Play;
 import com.example.szinhaz.model.Room;
 import com.example.szinhaz.model.Show;
+import com.example.szinhaz.model.Ticket;
 import com.example.szinhaz.model.User;
 import com.example.szinhaz.repository.PlayRepository;
 import com.example.szinhaz.repository.RoomRepository;
@@ -16,292 +17,682 @@ import com.example.szinhaz.service.TicketService;
 import com.example.szinhaz.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.support.SessionStatus;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class PageControllerTest {
 
-    @Mock private ShowService showService;
-    @Mock private PlayService playService;
-    @Mock private RoomService roomService;
-    @Mock private TicketService ticketService;
-    @Mock private UserService userService;
-    @Mock private TicketRepository ticketRepository;
-    @Mock private ShowRepository showRepository;
-    @Mock private RoomRepository roomRepository;
-    @Mock private PlayRepository playRepository;
+    private ShowService showService;
+    private PlayService playService;
+    private RoomService roomService;
+    private TicketService ticketService;
+    private UserService userService;
+    private TicketRepository ticketRepository;
+    private ShowRepository showRepository;
+    private RoomRepository roomRepository;
+    private PlayRepository playRepository;
 
-    @InjectMocks
     private PageController pageController;
-
     private Model model;
-    private RedirectAttributes redirectAttributes;
     private MockHttpSession session;
-    private User regularUser;
-    private User adminUser;
-    private Show show;
+    private RedirectAttributesModelMap redirectAttributes;
 
     @BeforeEach
     void setUp() {
+        showService = Mockito.mock(ShowService.class);
+        playService = Mockito.mock(PlayService.class);
+        roomService = Mockito.mock(RoomService.class);
+        ticketService = Mockito.mock(TicketService.class);
+        userService = Mockito.mock(UserService.class);
+        ticketRepository = Mockito.mock(TicketRepository.class);
+        showRepository = Mockito.mock(ShowRepository.class);
+        roomRepository = Mockito.mock(RoomRepository.class);
+        playRepository = Mockito.mock(PlayRepository.class);
+
+        pageController = new PageController(showService, playService, roomService, ticketService, userService,
+                ticketRepository, showRepository, roomRepository, playRepository);
+
         model = new ExtendedModelMap();
-        redirectAttributes = new RedirectAttributesModelMap();
         session = new MockHttpSession();
+        redirectAttributes = new RedirectAttributesModelMap();
+    }
 
-        regularUser = new User();
-        regularUser.setId(1L);
-        regularUser.setName("user1");
-        regularUser.setRole("USER");
+    private User loggedInUser(String role) {
+        User user = new User("teszt", "jelszo", "Teszt Elek", "teszt@example.com");
+        user.setId(1L);
+        user.setRole(role);
+        return user;
+    }
 
-        adminUser = new User();
-        adminUser.setId(2L);
-        adminUser.setName("admin");
-        adminUser.setRole("ADMIN");
+    private Room room(String name) {
+        return new Room(name, 10, 15);
+    }
 
-        show = new Show();
-        show.setId(10L);
-        show.setStartTime(LocalDateTime.now());
+    private Play play(String title) {
+        return new Play(title, "Rendezo", 120, 2024, "Leiras", "kep.png");
+    }
+
+    private Show show(Long id, LocalDateTime startTime) {
+        Show show = new Show(startTime, room("Nagyterem"), play("Hamlet"));
+        show.setId(id);
+        return show;
+    }
+
+    private CartItem cartItem(Show show, int quantity, int price) {
+        return new CartItem(show, "info", "1-1", quantity, price);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> flashAttributes() {
+        return (Map<String, Object>) redirectAttributes.getFlashAttributes();
     }
 
     @Test
-    void initializeCart_ReturnsEmptyList() {
+    void initializeCartShouldReturnEmptyMutableList() {
         List<CartItem> cart = pageController.initializeCart();
-        assertNotNull(cart);
-        assertTrue(cart.isEmpty());
+
+        assertThat(cart).isEmpty();
+        cart.add(cartItem(null, 1, 4500));
+        assertThat(cart).hasSize(1);
     }
 
     @Test
-    void home_PopulatesModelAndSortsRooms() {
-        Room r1 = new Room("Kisterem", 4, 6);
-        Room r2 = new Room("Nagyterem", 8, 12);
-        Room r3 = new Room("B terem", 5, 5);
+    void homeShouldExposePlaysRoomsAndTodaysShows() {
+        List<Play> plays = List.of(play("Hamlet"));
+        Room kamaraterem = room("Kamaraterem");
+        Room studioterem = room("Stúdióterem");
+        Room nagyterem = room("Nagyterem");
+        Show withoutStart = show(1L, null);
+        Show today = show(2L, LocalDate.now().atTime(19, 0));
+        Show tomorrow = show(3L, LocalDate.now().plusDays(1).atTime(19, 0));
 
-        when(playService.getAllPlays()).thenReturn(List.of(new Play()));
-        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(r1, r2, r3)));
-        when(showService.getAllShows()).thenReturn(List.of(show));
+        when(playService.getAllPlays()).thenReturn(plays);
+        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(kamaraterem, studioterem, nagyterem)));
+        when(showService.getAllShows()).thenReturn(List.of(withoutStart, today, tomorrow));
 
         String view = pageController.home(model);
 
-        assertEquals("fooldal", view);
-        @SuppressWarnings("unchecked")
-        List<Room> sortedRooms = (List<Room>) model.getAttribute("rooms");
-        assertNotNull(sortedRooms);
-        assertEquals("Nagyterem", sortedRooms.get(0).getName());
-        assertNotNull(model.getAttribute("shows"));
+        assertThat(view).isEqualTo("fooldal");
+        assertThat(model.getAttribute("plays")).isSameAs(plays);
+        assertThat((List<Room>) model.getAttribute("rooms"))
+                .extracting(Room::getName)
+                .containsExactly("Nagyterem", "Kamaraterem", "Stúdióterem");
+        assertThat((List<Show>) model.getAttribute("shows")).containsExactly(today);
     }
 
     @Test
-    void cart_EmptyAndNonEmpty_CalculatesTotals() {
-        List<CartItem> emptyCart = new ArrayList<>();
-        assertEquals("kosar", pageController.cart(emptyCart, model));
-        assertEquals(0, model.getAttribute("convenienceFee"));
-        assertEquals(0, model.getAttribute("totalPrice"));
+    void homeShouldKeepNagyteremFirstWhenItIsAlreadyFirst() {
+        Room nagyterem = room("Nagyterem");
+        Room kamaraterem = room("Kamaraterem");
+        Room studioterem = room("Stúdióterem");
 
-        List<CartItem> cart = List.of(new CartItem(show, "1. sor, 1. szék;", "1-1", 2, 9000));
-        assertEquals("kosar", pageController.cart(cart, model));
-        assertEquals(2, model.getAttribute("totalTickets"));
-        assertEquals(390, model.getAttribute("convenienceFee"));
-        assertEquals(9390, model.getAttribute("totalPrice"));
+        when(playService.getAllPlays()).thenReturn(List.of());
+        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(nagyterem, kamaraterem, studioterem)));
+        when(showService.getAllShows()).thenReturn(List.of());
+
+        pageController.home(model);
+
+        assertThat((List<Room>) model.getAttribute("rooms"))
+                .extracting(Room::getName)
+                .containsExactly("Nagyterem", "Kamaraterem", "Stúdióterem");
     }
 
     @Test
-    void addToCart_ShowNotFound_RedirectsToShows() {
-        when(showService.getShowById(99L)).thenReturn(null);
+    void cartShouldCalculateEmptyCart() {
+        String view = pageController.cart(new ArrayList<>(), model);
 
-        String view = pageController.addToCart(99L, "1-1", new ArrayList<>(), redirectAttributes);
-
-        assertEquals("redirect:/eloadasok", view);
-        assertNotNull(redirectAttributes.getFlashAttributes().get("error"));
+        assertThat(view).isEqualTo("kosar");
+        assertThat(model.getAttribute("totalTickets")).isEqualTo(0);
+        assertThat(model.getAttribute("ticketsPrice")).isEqualTo(0);
+        assertThat(model.getAttribute("convenienceFee")).isEqualTo(0);
+        assertThat(model.getAttribute("totalPrice")).isEqualTo(0);
     }
 
     @Test
-    void addToCart_EmptyOrInvalidSeats_RedirectsToShow() {
-        when(showService.getShowById(10L)).thenReturn(show);
+    void cartShouldCalculateTotalsAndConvenienceFee() {
+        List<CartItem> cart = List.of(
+                cartItem(show(1L, LocalDateTime.now().plusDays(1)), 2, 9000),
+                cartItem(show(2L, LocalDateTime.now().plusDays(2)), 1, 4500)
+        );
 
-        assertEquals("redirect:/eloadas/10", pageController.addToCart(10L, "  ", new ArrayList<>(), redirectAttributes));
-        assertEquals("redirect:/eloadas/10", pageController.addToCart(10L, "hibas", new ArrayList<>(), redirectAttributes));
-        assertEquals("redirect:/eloadas/10", pageController.addToCart(10L, "0-1", new ArrayList<>(), redirectAttributes));
+        pageController.cart(cart, model);
+
+        assertThat(model.getAttribute("totalTickets")).isEqualTo(3);
+        assertThat(model.getAttribute("ticketsPrice")).isEqualTo(13500);
+        assertThat(model.getAttribute("convenienceFee")).isEqualTo(390);
+        assertThat(model.getAttribute("totalPrice")).isEqualTo(13890);
     }
 
     @Test
-    void addToCart_ValidSeats_AddsItemAndRedirectsToCart() {
-        when(showService.getShowById(10L)).thenReturn(show);
+    void addToCartShouldRejectUnknownShow() {
+        when(showService.getShowById(1L)).thenReturn(null);
+
+        String view = pageController.addToCart(1L, "1-2", new ArrayList<>(), redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/eloadasok");
+        assertThat(flashAttributes())
+                .containsEntry("error", "A kiválasztott előadás nem található!");
+    }
+
+    @Test
+    void addToCartShouldRejectNullSeatSelection() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        String view = pageController.addToCart(1L, null, new ArrayList<>(), redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/eloadas/1");
+        assertThat(flashAttributes())
+                .containsEntry("error", "Nem választottál ki egyetlen széket sem!");
+    }
+
+    @Test
+    void addToCartShouldRejectBlankSeatSelection() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        String view = pageController.addToCart(1L, "   ", new ArrayList<>(), redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/eloadas/1");
+        assertThat(flashAttributes())
+                .containsEntry("error", "Nem választottál ki egyetlen széket sem!");
+    }
+
+    @Test
+    void addToCartShouldAddEverySelectedSeat() {
+        Show show = show(1L, LocalDateTime.now().plusDays(1));
+        when(showService.getShowById(1L)).thenReturn(show);
         List<CartItem> cart = new ArrayList<>();
 
-        String view = pageController.addToCart(10L, "1-2, 1-3", cart, redirectAttributes);
+        String view = pageController.addToCart(1L, " 1-2 ,3-4 ", cart, redirectAttributes);
 
-        assertEquals("redirect:/kosar", view);
-        assertEquals(1, cart.size());
-        assertEquals(2, cart.get(0).getQuantity());
-        assertEquals(9000, cart.get(0).getPrice());
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(cart).hasSize(1);
+        CartItem item = cart.get(0);
+        assertThat(item.getShow()).isSameAs(show);
+        assertThat(item.getRawSeats()).isEqualTo(" 1-2 ,3-4 ");
+        assertThat(item.getSeatInfo()).isEqualTo("1. sor, 2. szék; 3. sor, 4. szék; ");
+        assertThat(item.getQuantity()).isEqualTo(2);
+        assertThat(item.getPrice()).isEqualTo(9000);
+        assertThat(flashAttributes()).isEmpty();
     }
 
     @Test
-    void removeFromCart_ValidAndInvalidIndex() {
+    void addToCartShouldRejectSeatWithoutSeparator() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        String view = pageController.addToCart(1L, "12", new ArrayList<>(), redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/eloadas/1");
+        assertThat(flashAttributes())
+                .containsEntry("error", "Érvénytelen székválasztás!");
+    }
+
+    @Test
+    void addToCartShouldRejectSeatWithTooManyParts() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        pageController.addToCart(1L, "1-2-3", new ArrayList<>(), redirectAttributes);
+
+        assertThat(flashAttributes())
+                .containsEntry("error", "Érvénytelen székválasztás!");
+    }
+
+    @Test
+    void addToCartShouldRejectNonPositiveRow() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        pageController.addToCart(1L, "0-2", new ArrayList<>(), redirectAttributes);
+
+        assertThat(flashAttributes())
+                .containsEntry("error", "Érvénytelen székválasztás!");
+    }
+
+    @Test
+    void addToCartShouldRejectNonPositiveSeat() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        pageController.addToCart(1L, "1-0", new ArrayList<>(), redirectAttributes);
+
+        assertThat(flashAttributes())
+                .containsEntry("error", "Érvénytelen székválasztás!");
+    }
+
+    @Test
+    void addToCartShouldRejectNonNumericSeat() {
+        when(showService.getShowById(1L)).thenReturn(show(1L, LocalDateTime.now().plusDays(1)));
+
+        pageController.addToCart(1L, "a-b", new ArrayList<>(), redirectAttributes);
+
+        assertThat(flashAttributes())
+                .containsEntry("error", "Érvénytelen székválasztás!");
+    }
+
+    @Test
+    void removeFromCartShouldRemoveItemAtValidIndex() {
+        CartItem first = cartItem(null, 1, 4500);
+        CartItem second = cartItem(null, 1, 4500);
+        CartItem third = cartItem(null, 1, 4500);
+        List<CartItem> cart = new ArrayList<>(List.of(first, second, third));
+
+        String view = pageController.removeFromCart(1, cart);
+
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(cart).containsExactly(first, third);
+    }
+
+    @Test
+    void removeFromCartShouldIgnoreNegativeIndex() {
+        CartItem item = cartItem(null, 1, 4500);
+        List<CartItem> cart = new ArrayList<>(List.of(item));
+
+        pageController.removeFromCart(-1, cart);
+
+        assertThat(cart).containsExactly(item);
+    }
+
+    @Test
+    void removeFromCartShouldIgnoreIndexAtSize() {
+        CartItem item = cartItem(null, 1, 4500);
+        List<CartItem> cart = new ArrayList<>(List.of(item));
+
+        pageController.removeFromCart(1, cart);
+
+        assertThat(cart).containsExactly(item);
+    }
+
+    @Test
+    void removeFromCartShouldIgnoreEmptyCart() {
         List<CartItem> cart = new ArrayList<>();
-        cart.add(new CartItem(show, "1-1", "1-1", 1, 4500));
 
-        assertEquals("redirect:/kosar", pageController.removeFromCart(5, cart));
-        assertEquals(1, cart.size());
+        pageController.removeFromCart(0, cart);
 
-        assertEquals("redirect:/kosar", pageController.removeFromCart(0, cart));
-        assertTrue(cart.isEmpty());
+        assertThat(cart).isEmpty();
     }
 
     @Test
-    void checkout_NotLoggedIn_RedirectsToLogin() {
-        String view = pageController.checkout(new ArrayList<>(), session, redirectAttributes);
-        assertEquals("redirect:/bejelentkezes", view);
-    }
-
-    @Test
-    void checkout_EmptyCart_RedirectsToCartWithError() {
-        session.setAttribute("loggedInUser", regularUser);
-
-        String view = pageController.checkout(new ArrayList<>(), session, redirectAttributes);
-
-        assertEquals("redirect:/kosar", view);
-        assertNotNull(redirectAttributes.getFlashAttributes().get("error"));
-    }
-
-    @Test
-    void checkout_Success_ClearsCartAndRedirectsToProfile() {
-        session.setAttribute("loggedInUser", regularUser);
-        List<CartItem> cart = new ArrayList<>(List.of(new CartItem(show, "1-1", "1-1", 1, 4500)));
+    void checkoutShouldRedirectToLoginWithoutUser() {
+        List<CartItem> cart = new ArrayList<>(List.of(cartItem(show(1L, LocalDateTime.now().plusDays(1)), 1, 4500)));
 
         String view = pageController.checkout(cart, session, redirectAttributes);
 
-        assertEquals("redirect:/profil", view);
-        assertTrue(cart.isEmpty());
-        assertNotNull(redirectAttributes.getFlashAttributes().get("success"));
-        verify(ticketService).checkoutCart(any(), eq(regularUser));
+        assertThat(view).isEqualTo("redirect:/bejelentkezes");
+        verify(ticketService, never()).checkoutCart(any(), any());
     }
 
     @Test
-    void checkout_Exceptions_RedirectToCartWithError() {
-        session.setAttribute("loggedInUser", regularUser);
-        List<CartItem> cart = new ArrayList<>(List.of(new CartItem(show, "1-1", "1-1", 1, 4500)));
+    void checkoutShouldRejectNullCart() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
 
-        doThrow(new IllegalStateException("Foglalt")).when(ticketService).checkoutCart(any(), eq(regularUser));
-        assertEquals("redirect:/kosar", pageController.checkout(cart, session, redirectAttributes));
+        String view = pageController.checkout(null, session, redirectAttributes);
 
-        doThrow(new DataIntegrityViolationException("Duplicate")).when(ticketService).checkoutCart(any(), eq(regularUser));
-        assertEquals("redirect:/kosar", pageController.checkout(cart, session, redirectAttributes));
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(flashAttributes())
+                .containsEntry("error", "A kosarad üres! Előbb válassz ki legalább egy jegyet.");
     }
 
     @Test
-    void loginAndProcessLogin_AllBranches() {
-        assertEquals("bejelentkezes", pageController.login());
+    void checkoutShouldRejectEmptyCart() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
 
-        when(userService.login("user1", "pass")).thenReturn(regularUser);
-        assertEquals("redirect:/fooldal", pageController.processLogin("user1", "pass", session, model));
-        assertEquals(regularUser, session.getAttribute("loggedInUser"));
+        String view = pageController.checkout(new ArrayList<>(), session, redirectAttributes);
 
-        when(userService.login("admin", "pass")).thenReturn(adminUser);
-        assertEquals("redirect:/admin", pageController.processLogin("admin", "pass", session, model));
-
-        when(userService.login("bad", "bad")).thenThrow(new IllegalArgumentException("Hibás adatok"));
-        assertEquals("bejelentkezes", pageController.processLogin("bad", "bad", session, model));
-        assertEquals("Hibás adatok", model.getAttribute("error"));
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(flashAttributes())
+                .containsEntry("error", "A kosarad üres! Előbb válassz ki legalább egy jegyet.");
     }
 
     @Test
-    void registerAndProcessRegister_AllBranches() {
-        assertEquals("regisztracio", pageController.register());
+    void checkoutShouldCompletePurchaseAndClearCart() {
+        User user = loggedInUser("USER");
+        session.setAttribute("loggedInUser", user);
+        List<CartItem> cart = new ArrayList<>(List.of(cartItem(show(1L, LocalDateTime.now().plusDays(1)), 1, 4500)));
+        doNothing().when(ticketService).checkoutCart(cart, user);
 
-        assertEquals("redirect:/bejelentkezes?sikeresReg",
-                pageController.processRegister("Teszt Elek", "t@e.hu", "teszt", "123456", model));
+        String view = pageController.checkout(cart, session, redirectAttributes);
 
-        doThrow(new IllegalStateException("Foglalt")).when(userService).registerUser(any(User.class));
-        assertEquals("regisztracio",
-                pageController.processRegister("Teszt Elek", "t@e.hu", "teszt", "123456", model));
-        assertEquals("Foglalt", model.getAttribute("error"));
+        assertThat(view).isEqualTo("redirect:/profil");
+        assertThat(cart).isEmpty();
+        assertThat(flashAttributes())
+                .containsEntry("success", "Sikeres jegyvásárlás!");
+        verify(ticketService).checkoutCart(cart, user);
     }
 
     @Test
-    void logout_ClearsSessionAndRedirects() {
-        SessionStatus status = mock(SessionStatus.class);
-        String view = pageController.logout(session, status);
+    void checkoutShouldReportIllegalArgumentError() {
+        User user = loggedInUser("USER");
+        session.setAttribute("loggedInUser", user);
+        List<CartItem> cart = new ArrayList<>(List.of(cartItem(show(1L, LocalDateTime.now().plusDays(1)), 1, 4500)));
+        doThrow(new IllegalArgumentException("Hibás kosár")).when(ticketService).checkoutCart(cart, user);
 
-        assertEquals("redirect:/fooldal", view);
-        verify(status).setComplete();
-        assertTrue(session.isInvalid());
+        String view = pageController.checkout(cart, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(flashAttributes()).containsEntry("error", "Hibás kosár");
+        assertThat(cart).hasSize(1);
     }
 
     @Test
-    void userProfile_GuestAndLoggedIn() {
-        assertEquals("redirect:/bejelentkezes", pageController.userProfile(session, model));
+    void checkoutShouldReportIllegalStateError() {
+        User user = loggedInUser("USER");
+        session.setAttribute("loggedInUser", user);
+        List<CartItem> cart = new ArrayList<>(List.of(cartItem(show(1L, LocalDateTime.now().plusDays(1)), 1, 4500)));
+        doThrow(new IllegalStateException("Foglalt szék")).when(ticketService).checkoutCart(cart, user);
 
-        session.setAttribute("loggedInUser", regularUser);
-        when(ticketService.getTicketsByUser(1L)).thenReturn(Collections.emptyList());
+        String view = pageController.checkout(cart, session, redirectAttributes);
 
-        assertEquals("profil", pageController.userProfile(session, model));
-        assertEquals(regularUser, model.getAttribute("user"));
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(flashAttributes()).containsEntry("error", "Foglalt szék");
     }
 
     @Test
-    void adminDashboard_AccessControlAndDateFilter() {
-        assertEquals("redirect:/bejelentkezes", pageController.adminDashboard(null, session, model));
+    void checkoutShouldReportConcurrentReservation() {
+        User user = loggedInUser("USER");
+        session.setAttribute("loggedInUser", user);
+        List<CartItem> cart = new ArrayList<>(List.of(cartItem(show(1L, LocalDateTime.now().plusDays(1)), 1, 4500)));
+        doThrow(new DataIntegrityViolationException("constraint")).when(ticketService).checkoutCart(cart, user);
 
-        session.setAttribute("loggedInUser", regularUser);
-        assertEquals("redirect:/fooldal", pageController.adminDashboard(null, session, model));
+        String view = pageController.checkout(cart, session, redirectAttributes);
 
-        session.setAttribute("loggedInUser", adminUser);
-        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(new Room("Kisterem", 4, 6), new Room("Nagyterem", 8, 12))));
-        when(playService.getAllPlays()).thenReturn(Collections.emptyList());
-        when(showService.getAllShows()).thenReturn(List.of(show));
-
-        LocalDate customDate = LocalDate.now().plusDays(1);
-        assertEquals("admin_felulet", pageController.adminDashboard(customDate, session, model));
-        assertEquals(customDate, model.getAttribute("selectedDate"));
+        assertThat(view).isEqualTo("redirect:/kosar");
+        assertThat(flashAttributes())
+                .containsEntry("error", "Az egyik kiválasztott széket időközben már lefoglalták! Kérjük, válassz másik helyet.");
     }
 
     @Test
-    void addShow_AccessControlSuccessAndError() {
-        LocalDateTime time = LocalDateTime.now().plusDays(1);
-        assertEquals("redirect:/fooldal", pageController.addShow(1L, 1L, time, session, redirectAttributes));
-
-        session.setAttribute("loggedInUser", adminUser);
-        when(roomRepository.findById(1L)).thenReturn(Optional.of(new Room("Nagyterem", 5, 5)));
-        when(playRepository.findById(1L)).thenReturn(Optional.of(new Play()));
-
-        assertEquals("redirect:/admin", pageController.addShow(1L, 1L, time, session, redirectAttributes));
-        assertNotNull(redirectAttributes.getFlashAttributes().get("success"));
-
-        doThrow(new IllegalStateException("Ütközés")).when(showService).saveShow(any(Show.class));
-        assertEquals("redirect:/admin", pageController.addShow(1L, 1L, time, session, redirectAttributes));
-        assertEquals("Ütközés", redirectAttributes.getFlashAttributes().get("error"));
+    void loginShouldRenderLoginPage() {
+        assertThat(pageController.login()).isEqualTo("bejelentkezes");
     }
 
     @Test
-    void deleteShow_AccessControlAndDelete() {
-        assertEquals("redirect:/fooldal", pageController.deleteShow(10L, session));
+    void processLoginShouldStoreUserAndRedirectToHome() {
+        User user = loggedInUser("USER");
+        when(userService.login("teszt", "jelszo")).thenReturn(user);
 
-        session.setAttribute("loggedInUser", adminUser);
-        when(ticketRepository.findByShowId(10L)).thenReturn(Collections.emptyList());
+        String view = pageController.processLogin("teszt", "jelszo", session, model);
 
-        assertEquals("redirect:/admin", pageController.deleteShow(10L, session));
-        verify(ticketRepository).deleteAll(any());
-        verify(showRepository).deleteById(10L);
+        assertThat(view).isEqualTo("redirect:/fooldal");
+        assertThat(session.getAttribute("loggedInUser")).isSameAs(user);
+    }
+
+    @Test
+    void processLoginShouldRedirectAdminToAdminPage() {
+        User user = loggedInUser("ADMIN");
+        when(userService.login("teszt", "jelszo")).thenReturn(user);
+
+        String view = pageController.processLogin("teszt", "jelszo", session, model);
+
+        assertThat(view).isEqualTo("redirect:/admin");
+        assertThat(session.getAttribute("loggedInUser")).isSameAs(user);
+    }
+
+    @Test
+    void processLoginShouldExposeErrorOnFailure() {
+        when(userService.login("teszt", "rossz")).thenThrow(new IllegalArgumentException("Hibás adatok"));
+
+        String view = pageController.processLogin("teszt", "rossz", session, model);
+
+        assertThat(view).isEqualTo("bejelentkezes");
+        assertThat(model.getAttribute("error")).isEqualTo("Hibás adatok");
+        assertThat(session.getAttribute("loggedInUser")).isNull();
+    }
+
+    @Test
+    void registerShouldRenderRegistrationPage() {
+        assertThat(pageController.register()).isEqualTo("regisztracio");
+    }
+
+    @Test
+    void processRegisterShouldCreateUserAndRedirect() {
+        when(userService.registerUser(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        String view = pageController.processRegister("Teszt Elek", "teszt@example.com", "teszt", "jelszo", model);
+
+        assertThat(view).isEqualTo("redirect:/bejelentkezes?sikeresReg");
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userService).registerUser(captor.capture());
+        User created = captor.getValue();
+        assertThat(created.getFullName()).isEqualTo("Teszt Elek");
+        assertThat(created.getEmail()).isEqualTo("teszt@example.com");
+        assertThat(created.getName()).isEqualTo("teszt");
+        assertThat(created.getPassword()).isEqualTo("jelszo");
+    }
+
+    @Test
+    void processRegisterShouldExposeIllegalArgumentError() {
+        when(userService.registerUser(any(User.class))).thenThrow(new IllegalArgumentException("Hibás regisztráció"));
+
+        String view = pageController.processRegister("Teszt Elek", "teszt@example.com", "teszt", "jelszo", model);
+
+        assertThat(view).isEqualTo("regisztracio");
+        assertThat(model.getAttribute("error")).isEqualTo("Hibás regisztráció");
+    }
+
+    @Test
+    void processRegisterShouldExposeIllegalStateError() {
+        when(userService.registerUser(any(User.class))).thenThrow(new IllegalStateException("Foglalt név"));
+
+        String view = pageController.processRegister("Teszt Elek", "teszt@example.com", "teszt", "jelszo", model);
+
+        assertThat(view).isEqualTo("regisztracio");
+        assertThat(model.getAttribute("error")).isEqualTo("Foglalt név");
+    }
+
+    @Test
+    void logoutShouldCompleteSessionAndInvalidateIt() {
+        SessionStatus sessionStatus = Mockito.mock(SessionStatus.class);
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+
+        String view = pageController.logout(session, sessionStatus);
+
+        assertThat(view).isEqualTo("redirect:/fooldal");
+        verify(sessionStatus).setComplete();
+        assertThat(session.isInvalid()).isTrue();
+    }
+
+    @Test
+    void userProfileShouldRedirectToLoginWithoutUser() {
+        assertThat(pageController.userProfile(session, model)).isEqualTo("redirect:/bejelentkezes");
+    }
+
+    @Test
+    void userProfileShouldExposeUserAndTickets() {
+        User user = loggedInUser("USER");
+        session.setAttribute("loggedInUser", user);
+        List<Ticket> tickets = List.of(new Ticket());
+        when(ticketService.getTicketsByUser(1L)).thenReturn(tickets);
+
+        String view = pageController.userProfile(session, model);
+
+        assertThat(view).isEqualTo("profil");
+        assertThat(model.getAttribute("user")).isSameAs(user);
+        assertThat(model.getAttribute("tickets")).isSameAs(tickets);
+    }
+
+    @Test
+    void adminDashboardShouldRedirectToLoginWithoutUser() {
+        assertThat(pageController.adminDashboard(null, session, model)).isEqualTo("redirect:/bejelentkezes");
+    }
+
+    @Test
+    void adminDashboardShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+
+        assertThat(pageController.adminDashboard(null, session, model)).isEqualTo("redirect:/fooldal");
+    }
+
+    @Test
+    void adminDashboardShouldDefaultToTodayAndFilterShows() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Room kamaraterem = room("Kamaraterem");
+        Room studioterem = room("Stúdióterem");
+        Room nagyterem = room("Nagyterem");
+        Show withoutStart = show(1L, null);
+        Show today = show(2L, LocalDate.now().atTime(19, 0));
+        Show tomorrow = show(3L, LocalDate.now().plusDays(1).atTime(19, 0));
+        List<Play> plays = List.of(play("Hamlet"));
+
+        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(kamaraterem, studioterem, nagyterem)));
+        when(playService.getAllPlays()).thenReturn(plays);
+        when(showService.getAllShows()).thenReturn(List.of(withoutStart, today, tomorrow));
+
+        String view = pageController.adminDashboard(null, session, model);
+
+        assertThat(view).isEqualTo("admin_felulet");
+        assertThat(model.getAttribute("selectedDate")).isEqualTo(LocalDate.now());
+        assertThat(model.getAttribute("plays")).isSameAs(plays);
+        assertThat((List<Room>) model.getAttribute("rooms"))
+                .extracting(Room::getName)
+                .containsExactly("Nagyterem", "Kamaraterem", "Stúdióterem");
+        assertThat((List<Show>) model.getAttribute("shows")).containsExactly(today);
+    }
+
+    @Test
+    void adminDashboardShouldUseProvidedDateAndKeepNagyteremFirst() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Room nagyterem = room("Nagyterem");
+        Room kamaraterem = room("Kamaraterem");
+        Room studioterem = room("Stúdióterem");
+        LocalDate selectedDate = LocalDate.of(2030, 5, 5);
+        Show onSelectedDate = show(4L, selectedDate.atTime(19, 0));
+        Show today = show(5L, LocalDate.now().atTime(19, 0));
+
+        when(roomService.getAllRooms()).thenReturn(new ArrayList<>(List.of(nagyterem, kamaraterem, studioterem)));
+        when(playService.getAllPlays()).thenReturn(List.of());
+        when(showService.getAllShows()).thenReturn(List.of(onSelectedDate, today));
+
+        pageController.adminDashboard(selectedDate, session, model);
+
+        assertThat(model.getAttribute("selectedDate")).isEqualTo(selectedDate);
+        assertThat((List<Room>) model.getAttribute("rooms"))
+                .extracting(Room::getName)
+                .containsExactly("Nagyterem", "Kamaraterem", "Stúdióterem");
+        assertThat((List<Show>) model.getAttribute("shows")).containsExactly(onSelectedDate);
+    }
+
+    @Test
+    void addShowShouldRedirectWithoutUser() {
+        String view = pageController.addShow(1L, 2L, LocalDateTime.now().plusDays(1), session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/fooldal");
+        verify(showService, never()).saveShow(any());
+    }
+
+    @Test
+    void addShowShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+
+        String view = pageController.addShow(1L, 2L, LocalDateTime.now().plusDays(1), session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/fooldal");
+        verify(showService, never()).saveShow(any());
+    }
+
+    @Test
+    void addShowShouldCreateShowForAdmin() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        Room room = room("Nagyterem");
+        Play play = play("Hamlet");
+        LocalDateTime startTime = LocalDateTime.now().plusDays(1);
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(playRepository.findById(2L)).thenReturn(Optional.of(play));
+        when(showService.saveShow(any(Show.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        String view = pageController.addShow(1L, 2L, startTime, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin");
+        assertThat(flashAttributes())
+                .containsEntry("success", "Előadás sikeresen rögzítve!");
+        ArgumentCaptor<Show> captor = ArgumentCaptor.forClass(Show.class);
+        verify(showService).saveShow(captor.capture());
+        assertThat(captor.getValue().getStartTime()).isEqualTo(startTime);
+        assertThat(captor.getValue().getRoom()).isSameAs(room);
+        assertThat(captor.getValue().getPlay()).isSameAs(play);
+    }
+
+    @Test
+    void addShowShouldReportMissingRoom() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        when(roomRepository.findById(1L)).thenReturn(Optional.empty());
+        when(playRepository.findById(2L)).thenReturn(Optional.of(play("Hamlet")));
+        when(showService.saveShow(any(Show.class)))
+                .thenThrow(new IllegalArgumentException("A terem kötelező!"));
+
+        String view = pageController.addShow(1L, 2L, LocalDateTime.now().plusDays(1), session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin");
+        assertThat(flashAttributes()).containsEntry("error", "A terem kötelező!");
+    }
+
+    @Test
+    void addShowShouldReportMissingPlay() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room("Nagyterem")));
+        when(playRepository.findById(2L)).thenReturn(Optional.empty());
+        when(showService.saveShow(any(Show.class)))
+                .thenThrow(new IllegalArgumentException("A darab kötelező!"));
+
+        pageController.addShow(1L, 2L, LocalDateTime.now().plusDays(1), session, redirectAttributes);
+
+        assertThat(flashAttributes()).containsEntry("error", "A darab kötelező!");
+    }
+
+    @Test
+    void addShowShouldReportOverlappingShow() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room("Nagyterem")));
+        when(playRepository.findById(2L)).thenReturn(Optional.of(play("Hamlet")));
+        when(showService.saveShow(any(Show.class)))
+                .thenThrow(new IllegalStateException("Ütközés!"));
+
+        pageController.addShow(1L, 2L, LocalDateTime.now().plusDays(1), session, redirectAttributes);
+
+        assertThat(flashAttributes()).containsEntry("error", "Ütközés!");
+    }
+
+    @Test
+    void deleteShowShouldRedirectWithoutUser() {
+        assertThat(pageController.deleteShow(1L, session)).isEqualTo("redirect:/fooldal");
+        verify(showRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteShowShouldRedirectNonAdminUser() {
+        session.setAttribute("loggedInUser", loggedInUser("USER"));
+
+        assertThat(pageController.deleteShow(1L, session)).isEqualTo("redirect:/fooldal");
+        verify(showRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteShowShouldRemoveTicketsAndShowForAdmin() {
+        session.setAttribute("loggedInUser", loggedInUser("ADMIN"));
+        List<Ticket> tickets = List.of(new Ticket());
+        when(ticketRepository.findByShowId(7L)).thenReturn(tickets);
+
+        String view = pageController.deleteShow(7L, session);
+
+        assertThat(view).isEqualTo("redirect:/admin");
+        verify(ticketRepository).deleteAll(tickets);
+        verify(showRepository).deleteById(7L);
     }
 }
