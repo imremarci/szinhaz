@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.ArrayList;
 
 import java.util.List;
 
@@ -67,9 +68,11 @@ public class PlayController {
             return "redirect:/fooldal";
         }
 
-        if (actorIds != null && !actorIds.isEmpty()) {
-            List<Actor> selectedActors = actorRepository.findAllById(actorIds);
-            play.setActors(selectedActors);
+        if (play.getId() != null || (actorIds != null && !actorIds.isEmpty())) {
+            // Szerkesztésnél akkor is felülírjuk a szereplőket, ha senkit sem jelöltek be.
+            play.setActors(actorIds == null
+                    ? new ArrayList<>()
+                    : actorRepository.findAllById(actorIds));
         }
 
         try {
