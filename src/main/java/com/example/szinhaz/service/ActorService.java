@@ -26,6 +26,10 @@ public class ActorService {
         if (actor.getName() == null || actor.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("A színész neve nem lehet üres!");
         }
+        actor.setName(actor.getName().trim());
+        if (actor.getName().length() > 255) {
+            throw new IllegalArgumentException("A színész neve legfeljebb 255 karakter lehet!");
+        }
         if (actor.getRating() < 1.0 || actor.getRating() > 5.0) {
             throw new IllegalArgumentException("Az értékelésnek 1.0 és 5.0 közé kell esnie!");
         }

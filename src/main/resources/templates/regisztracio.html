@@ -20,7 +20,7 @@
     <form th:action="@{/regisztracio}" method="post">
         <div class="mb-4">
             <label for="fullName" class="form-label"><i class="bi bi-person-vcard me-2"></i>Teljes Név</label>
-            <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Pl.: Kovács János" required>
+            <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Pl.: Kovács János" maxlength="255" required>
         </div>
 
         <div class="mb-4">
@@ -29,12 +29,13 @@
                    placeholder="Pl.: kovacs.janos@email.hu"
                    pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}"
                    title="Adj meg egy teljes e-mail címet ponttal és végződéssel (pl.: kovacs.janos@email.hu)!"
+                   maxlength="255"
                    required>
         </div>
 
         <div class="mb-4">
             <label for="username" class="form-label"><i class="bi bi-person-fill me-2"></i>Felhasználónév</label>
-            <input type="text" class="form-control" id="username" name="name" placeholder="Válassz egy egyedi nevet" minlength="3" required>
+            <input type="text" class="form-control" id="username" name="name" placeholder="Válassz egy egyedi nevet" minlength="3" maxlength="255" required>
         </div>
 
         <div class="mb-4">
@@ -43,6 +44,7 @@
                    minlength="8"
                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}"
                    title="Legalább 8 karakter, benne kisbetű, nagybetű és szám. Írásjel opcionális."
+                   maxlength="255"
                    required>
             <div class="form-text text-secondary">Legalább 8 karakter, benne kisbetű, nagybetű és szám. Írásjel opcionális.</div>
         </div>

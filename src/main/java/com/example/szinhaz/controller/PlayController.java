@@ -12,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.ArrayList;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -42,7 +44,11 @@ public class PlayController {
 
     @GetMapping("/darabok/{id}")
     public String viewPlayDetails(@PathVariable Long id, Model model) {
-        model.addAttribute("play", playService.getPlayById(id));
+        Play play = playService.getPlayById(id);
+        if (play == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A színdarab nem található.");
+        }
+        model.addAttribute("play", play);
         return "szindarab";
     }
 

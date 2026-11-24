@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class ShowController {
@@ -39,7 +41,12 @@ public class ShowController {
 
     @GetMapping("/eloadas/{id}")
     public String bookShow(@PathVariable Long id, Model model) {
-        model.addAttribute("show", showService.getShowById(id));
+        Show show = showService.getShowById(id);
+        if (show == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Az előadás nem található.");
+        }
+
+        model.addAttribute("show", show);
 
         List<Ticket> tickets = ticketRepository.findByShowId(id);
         List<String> bookedSeats = tickets.stream()

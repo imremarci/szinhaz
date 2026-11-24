@@ -19,9 +19,15 @@ public class UserService {
         if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
             throw new IllegalArgumentException("A teljes név megadása kötelező!");
         }
+        if (user.getFullName().trim().length() > 255) {
+            throw new IllegalArgumentException("A teljes név legfeljebb 255 karakter lehet!");
+        }
         if (user.getEmail() == null || user.getEmail().trim().isEmpty()
                 || !user.getEmail().contains("@") || !user.getEmail().contains(".")) {
             throw new IllegalArgumentException("Érvényes e-mail cím megadása kötelező!");
+        }
+        if (user.getEmail().trim().length() > 255) {
+            throw new IllegalArgumentException("Az e-mail cím legfeljebb 255 karakter lehet!");
         }
         if (user.getName() == null || user.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("A felhasználónév megadása kötelező!");
@@ -29,11 +35,17 @@ public class UserService {
         if (user.getName().trim().length() < 3) {
             throw new IllegalArgumentException("A felhasználónév legalább 3 karakter legyen!");
         }
+        if (user.getName().trim().length() > 255) {
+            throw new IllegalArgumentException("A felhasználónév legfeljebb 255 karakter lehet!");
+        }
         if (user.getPassword() == null || user.getPassword().length() < 8) {
             throw new IllegalArgumentException("A jelszó legalább 8 karakter hosszú legyen!");
         }
         if (!user.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).*$")) {
             throw new IllegalArgumentException("A jelszónak tartalmaznia kell kisbetűt, nagybetűt és számot!");
+        }
+        if (user.getPassword().length() > 255) {
+            throw new IllegalArgumentException("A jelszó legfeljebb 255 karakter lehet!");
         }
 
         String cleanName = user.getName().trim();
