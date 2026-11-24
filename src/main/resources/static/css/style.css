@@ -26,15 +26,16 @@ body.auth-body {
 .sidebar {
     background-color: var(--theater-gray);
     border-right: 2px solid var(--theater-gold);
-    /* Ezek a sorok biztosítják, hogy rögzítve legyen a képernyő bal oldalán */
-    position: fixed; 
+    position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: inherit; /* Hogy a Bootstrap oszlop szélességét tartsa meg */
+    width: inherit;
     padding: 2rem 1rem;
-    overflow-y: auto; /* Ha túl sok menüpont lenne, lehessen benne görgetni */
-    z-index: 1000; /* Biztosítja, hogy mindig felül maradjon */
+    overflow-y: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
 }
 .sidebar h1 {
     color: var(--theater-gold);
@@ -46,6 +47,30 @@ body.auth-body {
     padding-bottom: 1rem;
     margin-bottom: 2rem;
     text-align: center;
+}
+/* Zsiráf a menü alatt, a sidebar aljáig */
+.sidebar-giraffe {
+    flex: 1 1 auto;
+    min-height: 90px;
+    margin-top: 1.5rem;
+    background-image: url("../images/giraffe-sidebar.svg");
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    background-size: contain;
+    pointer-events: none;
+    opacity: 0.95;
+}
+
+/* Kijelentkezés nélküli oldalakon nagyobb, és leér a sidebar aljáig */
+.sidebar-giraffe:last-child {
+    min-height: 180px;
+    margin-bottom: -2rem;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar-giraffe {
+        display: none;
+    }
 }
 .sidebar-menu h2 {
     font-size: 1.2rem;

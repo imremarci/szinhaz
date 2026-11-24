@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
 </head>
 <body>
 
@@ -24,6 +25,7 @@
                     <h2 th:onclick="|window.location.href='@{/szineszek}'|">Színészek</h2>
                     <h2 th:onclick="|window.location.href='@{/eloadasok}'|">Előadások</h2>
                 </div>
+                <div class="sidebar-giraffe" aria-hidden="true"></div>
 
                 <!-- Csak bejelentkezve látszik -->
                 <div th:if="${session.loggedInUser != null}" class="mt-auto p-3 border-top border-secondary">
@@ -129,18 +131,17 @@
                                     <th:block th:if="${show.room.name == room.name}">
 
                                         <div th:with="
-                                startHour=${show.startTime.hour},
-                                startMin=${show.startTime.minute},
-                                duration=${show.play.durationMinutes != null ? show.play.durationMinutes : 120},
-                                leftPos=${((startHour - 10) + (startMin / 60.0)) * 8.3333},
-                                widthVal=${(duration / 60.0) * 8.3333}"
+                                            startHour=${show.startTime.hour},
+                                            startMin=${show.startTime.minute},
+                                            duration=${show.play.durationMinutes != null ? show.play.durationMinutes : 120},
+                                            leftPos=${((startHour - 10) + (startMin / 60.0)) * 8.3333},
+                                            widthVal=${(duration / 60.0) * 8.3333}"
                                              th:class="'play-block ' + (${show.play.id % 3 == 0} ? 'play-green' : (${show.play.id % 2 == 0} ? 'play-blue' : 'play-red'))"
                                              th:style="'cursor: pointer; position: absolute; top: 0; left: ' + ${leftPos} + '%; width: ' + ${widthVal} + '%; height: 100%;'"
                                              th:title="${show.play.title}"
                                              th:onclick="|window.location.href='@{/eloadas/{id}(id=${show.id})}'|">
 
                                             <span class="play-title" th:text="${show.play.title} + ' (' + ${#temporals.format(show.startTime, 'HH:mm')} + '-' + ${#temporals.format(show.startTime.plusMinutes(show.play.durationMinutes != null ? show.play.durationMinutes : 120), 'HH:mm')} + ')'"></span>
-
                                         </div>
 
                                     </th:block>
