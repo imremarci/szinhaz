@@ -83,7 +83,7 @@
             <!-- Alsó rész: Mai idősáv az adatbázisból -->
             <div class="mt-4 mb-2">
                 <div class="d-flex justify-content-between align-items-end mb-3 px-2">
-                    <h4 class="fw-bold m-0 ms-4" style="color: var(--theater-gold); text-transform: uppercase; letter-spacing: 2px;">Mai idősáv</h4>
+                    <h4 class="fw-bold m-0 ms-4" style="color: var(--theater-gold); text-transform: uppercase; letter-spacing: 2px;">Idősáv</h4>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="section-title mb-0">IDŐSÁV (<span th:text="${selectedDate}"></span>)</h3>
                         <form th:action="@{/admin}" method="get" class="d-flex align-items-center gap-2">
@@ -116,14 +116,17 @@
                                                 startHour=${show.startTime.hour},
                                                 startMin=${show.startTime.minute},
                                                 duration=${show.play.durationMinutes != null ? show.play.durationMinutes : 120},
+                                                endTime=${show.startTime.plusMinutes(duration)},
                                                 leftPos=${((startHour - 10) + (startMin / 60.0)) * 8.3333},
                                                 widthVal=${(duration / 60.0) * 8.3333}"
                                              th:class="'play-block ' + (${show.play.id % 3 == 0} ? 'play-green' : (${show.play.id % 2 == 0} ? 'play-blue' : 'play-red'))"
                                              th:style="'position: absolute; top: 0; left: ' + ${leftPos} + '%; width: ' + ${widthVal} + '%; height: 100%;'"
                                              th:title="${show.play.title}">
 
-                                            <span class="play-title"
-                                                  th:text="${show.play.title} + ' (' + ${#temporals.format(show.startTime, 'HH:mm')} + '-' + ${#temporals.format(show.startTime.plusMinutes(duration), 'HH:mm')} + ')'">
+                                            <span class="play-title">
+                                                <span class="play-title-name" th:text="${show.play.title}">A dzsungel könyve</span>
+                                                <span class="play-title-time"
+                                                      th:text="${'(' + #temporals.format(show.startTime, 'HH:mm') + '–' + #temporals.format(endTime, 'HH:mm') + ')'}">(18:00–20:25)</span>
                                             </span>
 
                                             <form th:action="@{/admin/eloadas/torol/{id}(id=${show.id})}" method="post" style="display: inline;">
